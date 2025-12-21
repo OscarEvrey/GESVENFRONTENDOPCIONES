@@ -1,0 +1,213 @@
+
+# ====================
+# Dependencies
+# ====================
+node_modules/
+.pnpm-store/
+.npm/
+.yarn/
+.venv/
+env/
+venv/
+__pycache__/
+*.pyc
+
+# ====================
+# Build outputs
+# ====================
+dist/
+build/
+.next/
+out/
+publish/
+
+# Vite / tooling caches
+**/.vite/
+**/.vitest/
+**/.eslintcache
+*.tsbuildinfo
+
+# ====================
+# .NET / C#
+# ====================
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+.nuget/
+nuget.exe
+
+# Project-specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ====================
+# IDEs & Editors
+# ====================
+.vs/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-workspace
+*.sublime-project
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# ====================
+# Environment & Secrets
+# ====================
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+appsettings.Local.json
+secrets.json
+*.pfx
+*.p12
+
+# ====================
+# OS Generated
+# ====================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ====================
+# Logs
+# ====================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ====================
+# Testing & Coverage
+# ====================
+coverage/
+.nyc_output/
+*.lcov
+TestResults/
+*.trx
+*.coveragexml
+.coverage
+.cache/
+
+# ====================
+# Turborepo
+# ====================
+.turbo/
+
+# ====================
+# Tauri (Desktop)
+# ====================
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/WixTools/
+apps/desktop/src-tauri/*.wixobj
+
+# ====================
+# Expo / React Native (Mobile)
+# ====================
+apps/mobile/.expo/
+apps/mobile/ios/
+apps/mobile/android/
+apps/mobile/dist/
+*.jks
+*.keystore
+*.hprof
+
+# ====================
+# Generated / Auto-generated
+# ====================
+packages/api-client/src/generated/
+*.generated.ts
+*.g.cs
+
+# ====================
+# Temporary files
+# ====================
+*.tmp
+*.temp
+*.bak
+*.backup
+~$*
+.~lock.*
+
+# ====================
+# Large Media Files
+# ====================
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.mp3
+*.wav
+*.flac
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+!*.tar.gz  # Allow specific archives if needed
+
+# ====================
+# Database
+# ====================
+*.mdf
+*.ldf
+*.ndf
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+
+# ====================
+# Documentation builds
+# ====================
+docs/_build/
+/site/
+
+# ====================
+# Misc
+# ====================
+*.pem
+*.key
+.cursor/
+.cursorignore
+.cursorindexingignore
