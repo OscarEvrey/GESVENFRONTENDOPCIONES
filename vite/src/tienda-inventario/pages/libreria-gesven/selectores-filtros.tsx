@@ -839,7 +839,7 @@ function SelectorArchivos() {
         return extension === 'xml' || extension === 'pdf';
       })
       .map((file) => ({
-        id: Math.random().toString(36).substr(2, 9),
+        id: Math.random().toString(36).substring(2, 11),
         nombre: file.name,
         tipo: file.name.toLowerCase().endsWith('.xml') ? 'xml' : 'pdf',
         tamaño: formatearTamaño(file.size),
