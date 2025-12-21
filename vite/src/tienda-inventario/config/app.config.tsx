@@ -1,11 +1,13 @@
 import {
   Building2,
   CalendarDays,
+  ClipboardCheck,
   FileEdit,
   Filter,
   LayoutGrid,
   Package,
   Settings2,
+  ShoppingCart,
   Table2,
 } from 'lucide-react';
 import { MenuConfig } from './types';
@@ -21,6 +23,16 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: 'Inventario Actual',
     icon: Package,
     path: '/tienda-inventario/inventario-actual',
+  },
+  {
+    title: 'Nueva Orden de Compra',
+    icon: ShoppingCart,
+    path: '/tienda-inventario/nueva-orden-compra',
+  },
+  {
+    title: 'Aprobación de Compras',
+    icon: ClipboardCheck,
+    path: '/tienda-inventario/aprobacion-compras',
   },
   // ============ LIBRERÍA DEL TEMPLATE ============
   { heading: 'Librería del Template' },
