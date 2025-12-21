@@ -37,6 +37,8 @@ import { ComponentesControlPage } from './pages/libreria-gesven/componentes-cont
 // Nuevas páginas de Contexto e Inventario
 import { SelectorInstalacionPage } from './pages/contexto/SelectorInstalacion';
 import { InventarioActualPage } from './pages/inventario/InventarioActual';
+import { RecepcionMercanciaPage } from './pages/inventario/RecepcionMercancia';
+import { KardexMovimientosPage } from './pages/inventario/KardexMovimientos';
 // Páginas de Compras
 import { NuevaOrdenCompraPage } from './pages/compras/NuevaOrdenCompra';
 import { AprobacionComprasPage } from './pages/compras/AprobacionCompras';
@@ -51,6 +53,8 @@ export default function TiendaInventarioModule() {
             {/* Rutas principales del sistema Gesven */}
             <Route path="selector-instalacion" element={<SelectorInstalacionPage />} />
             <Route path="inventario-actual" element={<InventarioActualPage />} />
+            <Route path="recepcion-mercancia" element={<RecepcionMercanciaPage />} />
+            <Route path="kardex-movimientos" element={<KardexMovimientosPage />} />
             <Route path="nueva-orden-compra" element={<NuevaOrdenCompraPage />} />
             <Route path="aprobacion-compras" element={<AprobacionComprasPage />} />
             {/* Ruta de tablero */}

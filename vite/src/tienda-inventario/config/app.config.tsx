@@ -2,6 +2,7 @@ import {
   Building2,
   CalendarDays,
   ClipboardCheck,
+  ClipboardList,
   FileEdit,
   Filter,
   LayoutGrid,
@@ -9,6 +10,7 @@ import {
   Settings2,
   ShoppingCart,
   Table2,
+  Truck,
 } from 'lucide-react';
 import { MenuConfig } from './types';
 
@@ -33,6 +35,16 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: 'Aprobación de Compras',
     icon: ClipboardCheck,
     path: '/tienda-inventario/aprobacion-compras',
+  },
+  {
+    title: 'Recepción de Mercancía',
+    icon: Truck,
+    path: '/tienda-inventario/recepcion-mercancia',
+  },
+  {
+    title: 'Kardex de Movimientos',
+    icon: ClipboardList,
+    path: '/tienda-inventario/kardex-movimientos',
   },
   // ============ LIBRERÍA DEL TEMPLATE ============
   { heading: 'Librería del Template' },
