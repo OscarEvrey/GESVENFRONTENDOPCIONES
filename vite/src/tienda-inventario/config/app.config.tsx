@@ -1,14 +1,29 @@
 import {
+  Building2,
   CalendarDays,
   FileEdit,
   Filter,
   LayoutGrid,
+  Package,
   Settings2,
   Table2,
 } from 'lucide-react';
 import { MenuConfig } from './types';
 
 export const MENU_SIDEBAR: MenuConfig = [
+  // ============ ÍTEMS PRINCIPALES DE NIVEL SUPERIOR ============
+  {
+    title: 'Seleccionar Instalación',
+    icon: Building2,
+    path: '/tienda-inventario/selector-instalacion',
+  },
+  {
+    title: 'Inventario Actual',
+    icon: Package,
+    path: '/tienda-inventario/inventario-actual',
+  },
+  // ============ LIBRERÍA DEL TEMPLATE ============
+  { heading: 'Librería del Template' },
   {
     title: 'Inicio',
     icon: LayoutGrid,
@@ -16,7 +31,6 @@ export const MENU_SIDEBAR: MenuConfig = [
       { title: 'Tablero', path: '/tienda-inventario/tablero' },
     ],
   },
-  { heading: 'Librería de Prototipos Gesven' },
   {
     title: 'Tablas Maestras',
     icon: Table2,

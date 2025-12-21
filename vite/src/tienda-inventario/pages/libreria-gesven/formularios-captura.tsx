@@ -1025,6 +1025,7 @@ function ContenidoPaso3({
 
 function FormularioRegistroVenta() {
   const [pasoActual, setPasoActual] = useState(1);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_datosVenta, setDatosVenta] = useState<{
     paso1?: DatosPaso1;
     paso2?: DatosPaso2;

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Bell, LayoutGrid, Menu, MessageCircleMore } from 'lucide-react';
-import { useLocation } from 'react-router';
+import { Bell, Building2, LayoutGrid, Menu, MessageCircleMore, RefreshCw, Warehouse } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router';
 import { Link } from 'react-router-dom';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useScrollPosition } from '@/hooks/use-scroll-position';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -14,6 +15,7 @@ import {
   SheetHeader,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useContextoInstalacion } from '../../context/ContextoInstalacion';
 import { AppsDropdownMenu } from './apps-dropdown-menu';
 import { Breadcrumb } from './breadcrumb';
 import { ChatSheet } from './chat-sheet';
@@ -24,6 +26,8 @@ import { UserDropdownMenu } from './user-dropdown-menu';
 
 export function Header() {
   const [isSidebarSheetOpen, setIsSidebarSheetOpen] = useState(false);
+  const { instalacionActiva, limpiarInstalacion } = useContextoInstalacion();
+  const navigate = useNavigate();
 
   const { pathname } = useLocation();
   const mobileMode = useIsMobile();
@@ -35,6 +39,11 @@ export function Header() {
   useEffect(() => {
     setIsSidebarSheetOpen(false);
   }, [pathname]);
+
+  const handleCambiarInstalacion = () => {
+    limpiarInstalacion();
+    navigate('/tienda-inventario/selector-instalacion');
+  };
 
   return (
     <header
@@ -82,8 +91,39 @@ export function Header() {
         {/* Mega Menu */}
         {!mobileMode && <Breadcrumb />}
 
-        {/* HeaderTopbar */}
+        {/* Instalación Activa + HeaderTopbar */}
         <div className="flex items-center gap-3">
+          {/* Indicador de Instalación Activa */}
+          {instalacionActiva && (
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-lg border">
+              {instalacionActiva.tipo === 'almacen' ? (
+                <Warehouse className="size-4 text-green-600" />
+              ) : (
+                <Building2 className="size-4 text-blue-600" />
+              )}
+              <span className="text-sm font-medium">
+                {instalacionActiva.nombre}
+              </span>
+              <Badge
+                variant={instalacionActiva.tipo === 'almacen' ? 'success' : 'primary'}
+                appearance="light"
+                size="sm"
+              >
+                {instalacionActiva.empresa}
+              </Badge>
+              <Button
+                variant="ghost"
+                mode="icon"
+                size="sm"
+                className="size-6 hover:bg-primary/10"
+                onClick={handleCambiarInstalacion}
+                title="Cambiar instalación"
+              >
+                <RefreshCw className="size-3.5" />
+              </Button>
+            </div>
+          )}
+          
           <SearchBar />
           <NotificationsSheet
             trigger={
