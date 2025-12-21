@@ -42,6 +42,10 @@ import { KardexMovimientosPage } from './pages/inventario/KardexMovimientos';
 // Páginas de Compras
 import { NuevaOrdenCompraPage } from './pages/compras/NuevaOrdenCompra';
 import { AprobacionComprasPage } from './pages/compras/AprobacionCompras';
+// Páginas de Finanzas
+import { RegistroVentasPage } from './pages/finanzas/RegistroVentas';
+import { CargaFacturasPage } from './pages/finanzas/CargaFacturas';
+import { GestionPagosPage } from './pages/finanzas/GestionPagos';
 
 export default function TiendaInventarioModule() {
   return (
@@ -57,6 +61,9 @@ export default function TiendaInventarioModule() {
             <Route path="kardex-movimientos" element={<KardexMovimientosPage />} />
             <Route path="nueva-orden-compra" element={<NuevaOrdenCompraPage />} />
             <Route path="aprobacion-compras" element={<AprobacionComprasPage />} />
+            <Route path="registro-ventas" element={<RegistroVentasPage />} />
+            <Route path="carga-facturas" element={<CargaFacturasPage />} />
+            <Route path="gestion-pagos" element={<GestionPagosPage />} />
             {/* Ruta de tablero */}
             <Route path="tablero" element={<TableroPage />} />
             <Route path="dark-sidebar" element={<TableroPage />} />

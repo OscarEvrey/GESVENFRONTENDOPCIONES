@@ -1,13 +1,16 @@
 import {
+  Banknote,
   Building2,
   CalendarDays,
   ClipboardCheck,
   ClipboardList,
+  CloudUpload,
   FileEdit,
   Filter,
   LayoutGrid,
   Package,
   Settings2,
+  ShoppingBag,
   ShoppingCart,
   Table2,
   Truck,
@@ -45,6 +48,21 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: 'Kardex de Movimientos',
     icon: ClipboardList,
     path: '/tienda-inventario/kardex-movimientos',
+  },
+  {
+    title: 'Registro de Ventas',
+    icon: ShoppingBag,
+    path: '/tienda-inventario/registro-ventas',
+  },
+  {
+    title: 'Carga de Facturas',
+    icon: CloudUpload,
+    path: '/tienda-inventario/carga-facturas',
+  },
+  {
+    title: 'Gestión de Pagos',
+    icon: Banknote,
+    path: '/tienda-inventario/gestion-pagos',
   },
   // ============ LIBRERÍA DEL TEMPLATE ============
   { heading: 'Librería del Template' },
