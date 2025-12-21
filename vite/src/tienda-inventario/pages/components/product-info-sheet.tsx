@@ -167,7 +167,7 @@ const ProductInfoSheet = ({ datosMock: datosMockProps = datosMock, onClose }: Pr
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const [, setSelectedProduct] = useState<IData | undefined>(
     undefined,
   );

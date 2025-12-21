@@ -26,6 +26,12 @@ import { CustomerList } from './pages/lista-clientes/page';
 import { CustomerListDetails } from './pages/detalles-lista-clientes/page';
 import { OrderListProducts } from './pages/productos-lista-pedidos/page';
 import { SettingsModal } from './pages/modal-configuracion/page';
+// Librería de Prototipos Gesven
+import { TablasMaestrasPage } from './pages/libreria-gesven/tablas-maestras';
+import { FormulariosCapturaPage } from './pages/libreria-gesven/formularios-captura';
+import { SelectoresFiltrosPage } from './pages/libreria-gesven/selectores-filtros';
+import { CalendariosFechasPage } from './pages/libreria-gesven/calendarios-fechas';
+import { ComponentesControlPage } from './pages/libreria-gesven/componentes-control';
 
 export default function TiendaInventarioModule() {
   return (
@@ -34,6 +40,28 @@ export default function TiendaInventarioModule() {
         <Route index element={<Navigate to="tablero" replace />} />
         <Route path="tablero" element={<TableroPage />} />
         <Route path="dark-sidebar" element={<TableroPage />} />
+        {/* Rutas de Librería de Prototipos Gesven */}
+        <Route
+          path="libreria-gesven/tablas-maestras"
+          element={<TablasMaestrasPage />}
+        />
+        <Route
+          path="libreria-gesven/formularios-captura"
+          element={<FormulariosCapturaPage />}
+        />
+        <Route
+          path="libreria-gesven/selectores-filtros"
+          element={<SelectoresFiltrosPage />}
+        />
+        <Route
+          path="libreria-gesven/calendarios-fechas"
+          element={<CalendariosFechasPage />}
+        />
+        <Route
+          path="libreria-gesven/componentes-control"
+          element={<ComponentesControlPage />}
+        />
+        {/* Rutas existentes */}
         <Route path="todo-el-stock" element={<AllStock />} />
         <Route path="stock-actual" element={<CurrentStock />} />
         <Route path="stock-entrante" element={<InboundStock />} />

@@ -1,151 +1,70 @@
 import {
-  Boxes,
-  ClipboardList,
+  CalendarDays,
+  FileEdit,
+  Filter,
   LayoutGrid,
-  LayoutList,
-  Package,
   Settings2,
-  UsersRound,
+  Table2,
 } from 'lucide-react';
 import { MenuConfig } from './types';
 
-export const MENU_SIDEBAR: MenuConfig  = [
+export const MENU_SIDEBAR: MenuConfig = [
   {
-    title: 'Dashboards',
+    title: 'Inicio',
     icon: LayoutGrid,
     children: [
-      { title: 'Default', path: '/tienda-inventario/tablero' },
-      { title: 'Dark Sidebar', path: '/tienda-inventario/dark-sidebar' },
+      { title: 'Tablero', path: '/tienda-inventario/tablero' },
     ],
   },
-  { heading: 'Tienda Inventario' },
+  { heading: 'Librería de Prototipos Gesven' },
   {
-    title: 'Inventario',
-    icon: Boxes,
+    title: 'Tablas Maestras',
+    icon: Table2,
     children: [
       {
-        title: 'Todo el Stock',
-        path: '/tienda-inventario/todo-el-stock',
-      },
-      {
-        title: 'Stock Actual',
-        path: '/tienda-inventario/stock-actual',
-      },
-      {
-        title: 'Stock Entrante',
-        path: '/tienda-inventario/stock-entrante',
-      },
-      {
-        title: 'Stock Saliente',
-        path: '/tienda-inventario/stock-saliente',
-      },
-      {
-        title: 'Planificador Stock',
-        path: '/tienda-inventario/planificador-stock',
-      },
-      {
-        title: 'Stock por Producto',
-        path: '/tienda-inventario/stock-por-producto',
-      },
-      {
-        title: 'Rastrear Envío',
-        path: '/tienda-inventario/rastrear-envio',
-      },
-      {
-        title: 'Crear Etiqueta Envío',
-        path: '/tienda-inventario/crear-etiqueta-envio',
+        title: 'Ejemplos de Tablas',
+        path: '/tienda-inventario/libreria-gesven/tablas-maestras',
       },
     ],
   },
   {
-    title: 'Productos',
-    icon: Package,
+    title: 'Formularios de Captura',
+    icon: FileEdit,
     children: [
       {
-        title: 'Lista Productos',
-        path: '/tienda-inventario/lista-productos',
-      },
-      {
-        title: 'Detalles Producto',
-        path: '/tienda-inventario/detalles-producto',
-      },
-      { title: 'Crear Producto', path: '/tienda-inventario/crear-producto' },
-      {
-        title: 'Gestionar Variantes',
-        path: '/tienda-inventario/gestionar-variantes',
-      },
-      {
-        title: 'Editar Producto',
-        path: '/tienda-inventario/editar-producto',
+        title: 'Ejemplos de Formularios',
+        path: '/tienda-inventario/libreria-gesven/formularios-captura',
       },
     ],
   },
   {
-    title: 'Categorías',
-    icon: LayoutList,
+    title: 'Selectores y Filtros',
+    icon: Filter,
     children: [
       {
-        title: 'Lista Categorías',
-        path: '/tienda-inventario/lista-categorias',
+        title: 'Ejemplos de Selectores',
+        path: '/tienda-inventario/libreria-gesven/selectores-filtros',
       },
-      {
-        title: 'Detalles Categoría',
-        path: '/tienda-inventario/detalles-categoria',
-      },
-      {
-        title: 'Crear Categoría',
-        path: '/tienda-inventario/crear-categoria',
-      },
-      {
-        title: 'Editar Categoría',
-        path: '/tienda-inventario/editar-categoria',
-      }
     ],
   },
   {
-    title: 'Pedidos',
-    icon: ClipboardList,
+    title: 'Calendarios y Fechas',
+    icon: CalendarDays,
     children: [
       {
-        title: 'Lista Pedidos',
-        path: '/tienda-inventario/lista-pedidos',
-      },
-      {
-        title: 'Lista Pedidos - Productos',
-        path: '/tienda-inventario/productos-lista-pedidos',
-      },
-      {
-        title: 'Detalles Pedido',
-        path: '/tienda-inventario/detalles-pedido', 
-      },
-      {
-        title: 'Seguimiento Pedido',
-        path: '/tienda-inventario/seguimiento-pedido',
+        title: 'Ejemplos de Calendarios',
+        path: '/tienda-inventario/libreria-gesven/calendarios-fechas',
       },
     ],
   },
   {
-    title: 'Cliente',
-    icon: UsersRound,
-    children: [
-      {
-        title: 'Lista Clientes',
-        path: '/tienda-inventario/lista-clientes',
-      },
-      {
-        title: 'Detalles Cliente',
-        path: '/tienda-inventario/detalles-lista-clientes',
-      },
-    ],
-  },
-  {
-    title: 'Configuración',
+    title: 'Componentes de Control',
     icon: Settings2,
     children: [
       {
-        title: 'Configuración (Modal)',
-        path: '/tienda-inventario/modal-configuracion',
-      } 
-    ]
-  }
+        title: 'Ejemplos de Controles',
+        path: '/tienda-inventario/libreria-gesven/componentes-control',
+      },
+    ],
+  },
 ];
