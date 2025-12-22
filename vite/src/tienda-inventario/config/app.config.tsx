@@ -8,6 +8,7 @@ import {
   CloudUpload,
   FileEdit,
   Filter,
+  Key,
   LayoutGrid,
   Package,
   Settings2,
@@ -81,6 +82,11 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: 'Catálogo de Artículos',
     icon: Tag,
     path: '/tienda-inventario/articulos',
+  },
+  {
+    title: 'Administración de Accesos',
+    icon: Key,
+    path: '/tienda-inventario/gestion-accesos',
   },
   // ============ LIBRERÍA DEL TEMPLATE ============
   { heading: 'Librería del Template' },

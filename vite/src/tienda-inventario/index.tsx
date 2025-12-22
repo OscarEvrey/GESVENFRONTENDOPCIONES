@@ -48,6 +48,7 @@ import { CargaFacturasPage } from './pages/finanzas/CargaFacturas';
 import { GestionPagosPage } from './pages/finanzas/GestionPagos';
 // Páginas de Administración
 import { MonitorCancelacionesPage } from './pages/administracion/MonitorCancelaciones';
+import { GestionAccesosPage } from './pages/administracion/GestionAccesos';
 // Páginas de Catálogos
 import { ClientesProveedoresPage } from './pages/catalogos/ClientesProveedores';
 import { ArticulosPage } from './pages/catalogos/Articulos';
@@ -72,6 +73,7 @@ export default function TiendaInventarioModule() {
             <Route path="monitor-cancelaciones" element={<MonitorCancelacionesPage />} />
             <Route path="clientes-proveedores" element={<ClientesProveedoresPage />} />
             <Route path="articulos" element={<ArticulosPage />} />
+            <Route path="gestion-accesos" element={<GestionAccesosPage />} />
             {/* Ruta de tablero */}
             <Route path="tablero" element={<TableroPage />} />
             <Route path="dark-sidebar" element={<TableroPage />} />

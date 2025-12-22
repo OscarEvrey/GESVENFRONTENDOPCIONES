@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Box,
   CheckCircle,
+  Clock,
   Edit2,
   Package,
   Plus,
@@ -993,6 +994,14 @@ function ArticulosContenido() {
               <Label htmlFor="activo">
                 {formulario.activo ? 'Activo' : 'Inactivo'}
               </Label>
+            </div>
+
+            {/* Leyenda de auditoría */}
+            <div className="text-xs text-muted-foreground border-t pt-3 mt-3">
+              <span className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                Última modificación: Usuario 1 - {new Date().toLocaleDateString('es-MX')}
+              </span>
             </div>
           </DialogBody>
           <DialogFooter>
