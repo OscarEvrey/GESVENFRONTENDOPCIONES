@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertTriangle,
-  Calendar,
   Check,
   CheckCircle2,
   FileText,
@@ -14,7 +13,6 @@ import {
   Truck,
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { Navigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -51,8 +49,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { useContextoInstalacion } from '../../context/ContextoInstalacion';
-import { useOrdenesCompra, OrdenCompra } from '../../context/ContextoOrdenesCompra';
+import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
+import { useOrdenesCompra } from '../../context/ContextoOrdenesCompra';
 
 // ============ TIPOS ============
 interface LineaRecepcion {
@@ -76,7 +74,7 @@ const recepcionSchema = z.object({
 
 // ============ COMPONENTE PRINCIPAL ============
 export function RecepcionMercanciaPage() {
-  const { instalacionActiva } = useContextoInstalacion();
+  const instalacionActiva = useInstalacionActivaObligatoria();
   const { ordenes } = useOrdenesCompra();
   const [ordenSeleccionada, setOrdenSeleccionada] = useState<string>('');
   const [lineasRecepcion, setLineasRecepcion] = useState<LineaRecepcion[]>([]);
@@ -90,7 +88,6 @@ export function RecepcionMercanciaPage() {
 
   // Obtener órdenes aprobadas de la instalación activa
   const ordenesAprobadas = useMemo(() => {
-    if (!instalacionActiva) return [];
     return ordenes.filter(
       (orden) =>
         orden.instalacionId === instalacionActiva.id &&

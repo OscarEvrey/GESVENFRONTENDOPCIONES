@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Column,
   ColumnDef,
   getCoreRowModel,
   getPaginationRowModel,
@@ -78,10 +77,7 @@ import {
 } from '@/components/ui/tooltip';
 import { PerProductStockSheet } from '../components/per-product-stock-sheet';
 import { ProductDetailsAnalyticsSheet } from '../components/product-details-analytics-sheet';
-
-interface IColumnFilterProps<TData, TValue> {
-  column: Column<TData, TValue>;
-}
+import type { FiltroColumnaProps } from '../../types';
 
 export interface IData {
   id: string;
@@ -822,7 +818,7 @@ const StockPlannerTable = ({ datosMock: datosMockProps }: StockPlannerProps) => 
 
   const ColumnInputFilter = <TData, TValue>({
     column,
-  }: IColumnFilterProps<TData, TValue>) => {
+  }: FiltroColumnaProps<TData, TValue>) => {
     return (
       <Input
         placeholder="Filtrar..."

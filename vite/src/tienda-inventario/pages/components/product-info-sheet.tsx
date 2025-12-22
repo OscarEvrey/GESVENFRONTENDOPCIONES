@@ -4,7 +4,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import {
-  Column,
   ColumnDef,
   getCoreRowModel,
   getPaginationRowModel,
@@ -15,6 +14,7 @@ import {
 } from '@tanstack/react-table';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
+import type { FiltroColumnaProps } from '../../types';
 
 import { Alert, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Badge, BadgeProps } from '@/components/ui/badge';
@@ -35,10 +35,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
-
-interface IColumnFilterProps<TData, TValue> {
-  column: Column<TData, TValue>;
-}
 
 export interface IData {
   id: string;
@@ -160,11 +156,11 @@ const datosMock: IData[] = [
 ];
 
 const ProductInfoSheet = ({ datosMock: datosMockProps = datosMock, onClose }: ProductInfoSheetProps) => {
-  // Always use local datosMock for now
+  // Siempre usar datosMock local por ahora
   const data = datosMockProps; 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [, setSorting] = useState<SortingState>([]);
-  // Modal state
+  // Estado del modal
   const [isModalOpen, setIsModalOpen] = useState(false);
 
    
@@ -180,7 +176,7 @@ const ProductInfoSheet = ({ datosMock: datosMockProps = datosMock, onClose }: Pr
 
   const ColumnInputFilter = <TData, TValue>({
     column,
-  }: IColumnFilterProps<TData, TValue>) => {
+  }: FiltroColumnaProps<TData, TValue>) => {
     return (
       <Input
         placeholder="Filtrar..."

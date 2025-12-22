@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Bell, Building2, LayoutGrid, Menu, MessageCircleMore, RefreshCw, Warehouse } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';

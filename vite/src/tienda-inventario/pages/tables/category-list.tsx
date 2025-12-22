@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useMemo, useState, useEffect } from 'react';
 import {
-  Column,
   ColumnDef,
   getCoreRowModel,
   getPaginationRowModel,
@@ -40,10 +39,7 @@ import { Input, InputWrapper } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { CategoryDetailsEditSheet } from '../components/category-details-edit-sheet';
 import { CategoryFormSheet } from '../components/category-form-sheet';
-
-interface IColumnFilterProps<TData, TValue> {
-  column: Column<TData, TValue>;
-}
+import type { FiltroColumnaProps } from '../../types';
 
 export interface IData {
   totalEarnings: string;
@@ -71,7 +67,11 @@ interface CategoryListProps {
 const datosMock: IData[] = [
   {
     id: '1',
-    productInfo: { image: 'running-shoes.svg', title: 'Running Shoes', label: 'WM-8421' },
+    productInfo: {
+      image: 'running-shoes.svg',
+      title: 'Running Shoes',
+      label: 'WM-8421',
+    },
     productsQty: '120',
     totalEarnings: '$2,583.00',
     status: { label: 'Active', variant: 'success' },
@@ -459,7 +459,7 @@ export function CategoryListTable({
 
   const ColumnInputFilter = <TData, TValue>({
     column,
-  }: IColumnFilterProps<TData, TValue>) => {
+  }: FiltroColumnaProps<TData, TValue>) => {
     return (
       <Input
         placeholder="Filtrar..."

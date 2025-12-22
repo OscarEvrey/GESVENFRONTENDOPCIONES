@@ -20,18 +20,16 @@ import {
   Tag,
   Zap,
 } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+ 
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTable,
-  CardTitle,
 } from '@/components/ui/card';
 import { DataGrid } from '@/components/ui/data-grid';
 import { DataGridColumnHeader } from '@/components/ui/data-grid-column-header';
@@ -57,9 +55,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { useContextoInstalacion } from '../../context/ContextoInstalacion';
+import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
 
 // ============ TIPOS ============
 interface Articulo {
@@ -292,18 +290,11 @@ const datosIniciales: Articulo[] = [
 
 // ============ COMPONENTE PRINCIPAL ============
 export function ArticulosPage() {
-  const { instalacionActiva } = useContextoInstalacion();
-
-  // Redirigir si no hay instalación activa
-  if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
-  }
-
   return <ArticulosContenido />;
 }
 
 function ArticulosContenido() {
-  const { instalacionActiva } = useContextoInstalacion();
+  const instalacionActiva = useInstalacionActivaObligatoria();
   const [tabActiva, setTabActiva] = useState<string>('todos');
   const [busqueda, setBusqueda] = useState('');
   const [datos, setDatos] = useState<Articulo[]>(datosIniciales);

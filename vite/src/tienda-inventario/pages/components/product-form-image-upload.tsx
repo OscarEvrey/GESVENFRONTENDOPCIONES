@@ -253,9 +253,7 @@ export function ProductFormImageUpload({
           onImagesChange?.(uploadedImages);
 
           // Simulate upload progress
-          newImages.forEach((imageFile) => {
-            simulateUpload(imageFile);
-          });
+            newImages.forEach(simulateUpload);
 
           return updatedImages;
         }
@@ -263,10 +261,10 @@ export function ProductFormImageUpload({
         return prevImages;
       });
     },
-    [validateFile, onImagesChange],
+    [validateFile, onImagesChange, simulateUpload],
   );
 
-  const simulateUpload = (imageFile: ImageFile) => {
+  const simulateUpload = useCallback((imageFile: ImageFile) => {
     let progress = 0;
     const interval = setInterval(() => {
       progress += Math.random() * 20;
@@ -299,7 +297,7 @@ export function ProductFormImageUpload({
         );
       }
     }, 100);
-  };
+  }, [onUploadComplete]);
 
   const removeImage = useCallback((id: string) => {
     setAllImages((prev) => {

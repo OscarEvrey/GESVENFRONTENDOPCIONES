@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Column,
   ColumnDef,
   getCoreRowModel,
   getPaginationRowModel,
@@ -68,10 +67,7 @@ import { CustomerFormSheet } from '../components/customer-form-sheet';
 import { Avatar, AvatarImage, AvatarFallback, AvatarIndicator, AvatarStatus } from '@/components/ui/avatar';
 import { VariantProps } from 'class-variance-authority';
 import { Separator } from '@/components/ui/separator';
-
-interface IColumnFilterProps<TData, TValue> {
-  column: Column<TData, TValue>;
-}
+import type { FiltroColumnaProps } from '../../types';
 
 export interface IData {
   user: string;
@@ -894,7 +890,7 @@ export function CustomerListTable({
 
   const ColumnInputFilter = <TData, TValue>({
     column,
-  }: IColumnFilterProps<TData, TValue>) => {
+  }: FiltroColumnaProps<TData, TValue>) => {
     return (
       <Input
         placeholder="Filtrar..."

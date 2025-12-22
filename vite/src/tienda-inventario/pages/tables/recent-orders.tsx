@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Column,
   ColumnDef,
   getCoreRowModel,
   getFilteredRowModel,
@@ -37,10 +36,7 @@ import {
 } from '@/components/ui/data-grid-table';
 import { Input, InputWrapper } from '@/components/ui/input';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-
-interface IColumnFilterProps<TData, TValue> {
-  column: Column<TData, TValue>;
-}
+import type { FiltroColumnaProps } from '../../types';
 
 interface IData {
   id: string; // Use string for ID
@@ -426,7 +422,7 @@ const DashboardTable = () => {
 
   const ColumnInputFilter = <TData, TValue>({
     column,
-  }: IColumnFilterProps<TData, TValue>) => {
+  }: FiltroColumnaProps<TData, TValue>) => {
     return (
       <Input
         placeholder="Filtrar..."

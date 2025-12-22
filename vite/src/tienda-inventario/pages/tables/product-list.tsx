@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Column,
   ColumnDef,
   getCoreRowModel,
   getPaginationRowModel,
@@ -63,10 +62,7 @@ import { ProductFormSheet } from '../components/product-form-sheet';
 import { ProductDetailsAnalyticsSheet } from '../components/product-details-analytics-sheet';
 import { ManageVariantsSheet } from '../components/manage-variants';
 import { cn } from '@/lib/utils';
-
-interface IColumnFilterProps<TData, TValue> {
-  column: Column<TData, TValue>;
-}
+import type { FiltroColumnaProps } from '../../types';
 
 export interface IData {
   id: string;
@@ -587,7 +583,7 @@ export function ProductListTable({
 
   const ColumnInputFilter = <TData, TValue>({
     column,
-  }: IColumnFilterProps<TData, TValue>) => {
+  }: FiltroColumnaProps<TData, TValue>) => {
     return (
       <Input
         placeholder="Filtrar..."
@@ -894,7 +890,7 @@ export function ProductListTable({
   // Reset pagination when filters change
   useEffect(() => {
     table.setPageIndex(0);
-  }, [searchQuery, selectedLastMoved, activeTab]);
+  }, [activeTab, searchQuery, selectedLastMoved, table]);
 
   // Reset to first page when filters change
   useEffect(() => {

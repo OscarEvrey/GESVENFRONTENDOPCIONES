@@ -802,6 +802,29 @@ function SelectorArchivos() {
   const [archivos, setArchivos] = useState<ArchivoSubido[]>([]);
   const [arrastrando, setArrastrando] = useState(false);
 
+  const formatearTamaño = useCallback((bytes: number): string => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }, []);
+
+  const procesarArchivos = useCallback((files: File[]) => {
+    const nuevosArchivos: ArchivoSubido[] = files
+      .filter((file) => {
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        return extension === 'xml' || extension === 'pdf';
+      })
+      .map((file) => ({
+        id: Math.random().toString(36).substring(2, 11),
+        nombre: file.name,
+        tipo: file.name.toLowerCase().endsWith('.xml') ? 'xml' : 'pdf',
+        tamaño: formatearTamaño(file.size),
+        fecha: new Date().toLocaleDateString('es-MX'),
+      }));
+
+    setArchivos((prev) => [...prev, ...nuevosArchivos]);
+  }, [formatearTamaño]);
+
   const handleDragOver = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
@@ -820,7 +843,7 @@ function SelectorArchivos() {
 
     const files = Array.from(e.dataTransfer.files);
     procesarArchivos(files);
-  }, []);
+  }, [procesarArchivos]);
 
   const handleFileInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -829,31 +852,8 @@ function SelectorArchivos() {
         procesarArchivos(files);
       }
     },
-    [],
+    [procesarArchivos],
   );
-
-  const procesarArchivos = (files: File[]) => {
-    const nuevosArchivos: ArchivoSubido[] = files
-      .filter((file) => {
-        const extension = file.name.split('.').pop()?.toLowerCase();
-        return extension === 'xml' || extension === 'pdf';
-      })
-      .map((file) => ({
-        id: Math.random().toString(36).substring(2, 11),
-        nombre: file.name,
-        tipo: file.name.toLowerCase().endsWith('.xml') ? 'xml' : 'pdf',
-        tamaño: formatearTamaño(file.size),
-        fecha: new Date().toLocaleDateString('es-MX'),
-      }));
-
-    setArchivos((prev) => [...prev, ...nuevosArchivos]);
-  };
-
-  const formatearTamaño = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  };
 
   const eliminarArchivo = (id: string) => {
     setArchivos((prev) => prev.filter((a) => a.id !== id));

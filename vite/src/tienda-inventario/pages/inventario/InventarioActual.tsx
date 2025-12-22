@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { AlertTriangle, Package, Search } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+ 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,7 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useContextoInstalacion } from '../../context/ContextoInstalacion';
+import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
 
 // ============ TIPOS ============
 interface ProductoInventario {
@@ -352,7 +352,7 @@ const productosOficinas: ProductoInventario[] = [
 
 // ============ COMPONENTE PRINCIPAL ============
 export function InventarioActualPage() {
-  const { instalacionActiva } = useContextoInstalacion();
+  const instalacionActiva = useInstalacionActivaObligatoria();
   const [busqueda, setBusqueda] = useState('');
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>('');
   const [estadoFiltro, setEstadoFiltro] = useState<string>('');
@@ -364,7 +364,6 @@ export function InventarioActualPage() {
 
   // Seleccionar datos según el tipo de instalación (o vacío si no hay instalación)
   const datosBase = useMemo(() => {
-    if (!instalacionActiva) return [];
     return instalacionActiva.tipo === 'almacen' ? productosAlmacen : productosOficinas;
   }, [instalacionActiva]);
 
@@ -511,11 +510,6 @@ export function InventarioActualPage() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
-
-  // Protección de ruta: si no hay instalación, redirigir (después de todos los hooks)
-  if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
-  }
 
   return (
     <div className="container-fluid">

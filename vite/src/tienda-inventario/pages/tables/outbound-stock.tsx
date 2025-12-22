@@ -3,7 +3,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Column,
   ColumnDef,
   getCoreRowModel,
   getPaginationRowModel,
@@ -82,10 +81,7 @@ import {
 import { CreateShippingLabelSheet } from '../components/create-shipping-label-sheet';
 import { TrackShippingSheet } from '../components/track-shipping-sheet';
 import { PerProductStockSheet } from '../components/per-product-stock-sheet';
-
-interface IColumnFilterProps<TData, TValue> {
-  column: Column<TData, TValue>;
-}
+import type { FiltroColumnaProps } from '../../types';
 
 export interface OutboundStockData extends Record<string, unknown> {
   notify?: boolean;
@@ -865,7 +861,7 @@ export function OutboundStockTable({
 
   const ColumnInputFilter = <TData, TValue>({
     column,
-  }: IColumnFilterProps<TData, TValue>) => {
+  }: FiltroColumnaProps<TData, TValue>) => {
     return (
       <Input
         placeholder="Filtrar..."

@@ -341,7 +341,7 @@ const datosMock: DetailsInvoiceData[] = [
 
 
 // ---- MAIN TABLE COMPONENT ----
-export function DetailsInvoiceTable({ datosMock: datosMockProps, displayProducts = false }: DetailsInvoiceProps & { displayProducts?: boolean }) {
+export function DetailsInvoiceTable({ datosMock: datosMockProps }: DetailsInvoiceProps & { displayProducts?: boolean }) {
   const rawData = datosMockProps || datosMock;
 
   const [pagination, setPagination] = useState<PaginationState>({
@@ -476,7 +476,7 @@ export function DetailsInvoiceTable({ datosMock: datosMockProps, displayProducts
         size: 60,
       },
     ],
-    [displayProducts],
+    [],
   );
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -578,16 +578,16 @@ function TablaEdicionEnLinea() {
   });
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const iniciarEdicion = (fila: ArticuloInventario) => {
+  const iniciarEdicion = useCallback((fila: ArticuloInventario) => {
     setFilaEditando(fila.id);
     setValoresEditados({
       nombre: fila.nombre,
       precioUnitario: fila.precioUnitario,
       stockActual: fila.stockActual,
     });
-  };
+  }, []);
 
-  const guardarEdicion = () => {
+  const guardarEdicion = useCallback(() => {
     if (!filaEditando) return;
     setDatos((prev) =>
       prev.map((item) =>
@@ -596,12 +596,12 @@ function TablaEdicionEnLinea() {
     );
     setFilaEditando(null);
     setValoresEditados({});
-  };
+  }, [filaEditando, valoresEditados]);
 
-  const cancelarEdicion = () => {
+  const cancelarEdicion = useCallback(() => {
     setFilaEditando(null);
     setValoresEditados({});
-  };
+  }, []);
 
   const columns = useMemo<ColumnDef<ArticuloInventario>[]>(
     () => [
@@ -727,7 +727,7 @@ function TablaEdicionEnLinea() {
         size: 100,
       },
     ],
-    [filaEditando, valoresEditados],
+    [cancelarEdicion, filaEditando, guardarEdicion, iniciarEdicion, valoresEditados],
   );
 
   const table = useReactTable({

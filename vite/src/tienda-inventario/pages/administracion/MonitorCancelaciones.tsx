@@ -12,9 +12,7 @@ import {
   AlertCircle,
   AlertTriangle,
   Ban,
-  Calendar,
   CheckCircle,
-  Clock,
   FileText,
   History,
   Package,
@@ -24,7 +22,7 @@ import {
   User,
   XCircle,
 } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+ 
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -53,10 +51,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { useContextoInstalacion } from '../../context/ContextoInstalacion';
+import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
 
 // ============ TIPOS ============
 type TipoDocumento = 'venta' | 'orden_compra';
@@ -214,25 +211,18 @@ const generarAuditoriaFicticia = (instalacionId: string): RegistroAuditoria[] =>
 
 // ============ COMPONENTE PRINCIPAL ============
 export function MonitorCancelacionesPage() {
-  const { instalacionActiva } = useContextoInstalacion();
-
-  // Redirigir si no hay instalación activa
-  if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
-  }
-
   return <MonitorCancelacionesContenido />;
 }
 
 function MonitorCancelacionesContenido() {
-  const { instalacionActiva } = useContextoInstalacion();
+  const instalacionActiva = useInstalacionActivaObligatoria();
   const [tabActiva, setTabActiva] = useState<string>('documentos');
   const [busqueda, setBusqueda] = useState('');
   const [documentos, setDocumentos] = useState<Documento[]>(() =>
-    generarDocumentosFicticios(instalacionActiva!.id),
+    generarDocumentosFicticios(instalacionActiva.id),
   );
   const [auditorias, setAuditorias] = useState<RegistroAuditoria[]>(() =>
-    generarAuditoriaFicticia(instalacionActiva!.id),
+    generarAuditoriaFicticia(instalacionActiva.id),
   );
   const [documentoSeleccionado, setDocumentoSeleccionado] = useState<Documento | null>(
     null,

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ContextoInstalacionProvider } from './context/ContextoInstalacion';
 import { ContextoOrdenesCompraProvider } from './context/ContextoOrdenesCompra';
 import { DefaultLayout } from './layout';
+import { LayoutProtegido } from './layout/LayoutProtegido';
 import { AllStock } from './pages/todo-el-stock/page';
 import { CategoryDetails } from './pages/detalles-categoria/page';
 import { CategoryList } from './pages/lista-categorias/page';
@@ -62,21 +63,53 @@ export default function TiendaInventarioModule() {
             <Route index element={<Navigate to="selector-instalacion" replace />} />
             {/* Rutas principales del sistema Gesven */}
             <Route path="selector-instalacion" element={<SelectorInstalacionPage />} />
-            <Route path="inventario-actual" element={<InventarioActualPage />} />
-            <Route path="recepcion-mercancia" element={<RecepcionMercanciaPage />} />
-            <Route path="kardex-movimientos" element={<KardexMovimientosPage />} />
-            <Route path="nueva-orden-compra" element={<NuevaOrdenCompraPage />} />
-            <Route path="aprobacion-compras" element={<AprobacionComprasPage />} />
-            <Route path="registro-ventas" element={<RegistroVentasPage />} />
-            <Route path="carga-facturas" element={<CargaFacturasPage />} />
-            <Route path="gestion-pagos" element={<GestionPagosPage />} />
-            <Route path="monitor-cancelaciones" element={<MonitorCancelacionesPage />} />
-            <Route path="clientes-proveedores" element={<ClientesProveedoresPage />} />
-            <Route path="articulos" element={<ArticulosPage />} />
-            <Route path="gestion-accesos" element={<GestionAccesosPage />} />
-            {/* Ruta de tablero */}
-            <Route path="tablero" element={<TableroPage />} />
-            <Route path="dark-sidebar" element={<TableroPage />} />
+
+            <Route element={<LayoutProtegido />}>
+              <Route path="inventario-actual" element={<InventarioActualPage />} />
+              <Route path="recepcion-mercancia" element={<RecepcionMercanciaPage />} />
+              <Route path="kardex-movimientos" element={<KardexMovimientosPage />} />
+              <Route path="nueva-orden-compra" element={<NuevaOrdenCompraPage />} />
+              <Route path="aprobacion-compras" element={<AprobacionComprasPage />} />
+              <Route path="registro-ventas" element={<RegistroVentasPage />} />
+              <Route path="carga-facturas" element={<CargaFacturasPage />} />
+              <Route path="gestion-pagos" element={<GestionPagosPage />} />
+              <Route path="monitor-cancelaciones" element={<MonitorCancelacionesPage />} />
+              <Route path="clientes-proveedores" element={<ClientesProveedoresPage />} />
+              <Route path="articulos" element={<ArticulosPage />} />
+              <Route path="gestion-accesos" element={<GestionAccesosPage />} />
+              {/* Ruta de tablero */}
+              <Route path="tablero" element={<TableroPage />} />
+              <Route path="dark-sidebar" element={<TableroPage />} />
+              {/* Rutas existentes */}
+              <Route path="todo-el-stock" element={<AllStock />} />
+              <Route path="stock-actual" element={<CurrentStock />} />
+              <Route path="stock-entrante" element={<InboundStock />} />
+              <Route path="stock-saliente" element={<OutboundStock />} />
+              <Route path="planificador-stock" element={<StockPlanner />} />
+              <Route path="lista-productos" element={<ListaProductosPage />} />
+              <Route path="detalles-producto" element={<ProductDetailsPage />} />
+              <Route path="crear-producto" element={<CrearProductoPage />} />
+              <Route path="editar-producto" element={<EditarProductoPage />} />
+              <Route path="stock-por-producto" element={<PerProductStockPage />} />
+              <Route path="rastrear-envio" element={<TrackShippingPage />} />
+              <Route path="info-producto" element={<ProductInfoPage />} />
+              <Route path="lista-clientes" element={<CustomerList />} />
+              <Route path="detalles-lista-clientes" element={<CustomerListDetails />} />
+              <Route path="modal-configuracion" element={<SettingsModal />} />
+              <Route
+                path="crear-etiqueta-envio"
+                element={<CreateShippingLabelPage />}
+              />
+              <Route path="gestionar-variantes" element={<ManageVariantsPage />} />
+              <Route path="lista-categorias" element={<CategoryList />} />
+              <Route path="crear-categoria" element={<CreateCategoryPage />} />
+              <Route path="editar-categoria" element={<EditarCategoriaPage />} />
+              <Route path="detalles-categoria" element={<CategoryDetails />} />
+              <Route path="lista-pedidos" element={<OrderList />} />
+              <Route path="productos-lista-pedidos" element={<OrderListProducts />} />
+              <Route path="detalles-pedido" element={<OrderDetailsPage />} />
+              <Route path="seguimiento-pedido" element={<OrderTrackingPage />} />
+            </Route>
             {/* Rutas de Librería de Prototipos Gesven */}
             <Route
               path="libreria-gesven/tablas-maestras"
@@ -98,35 +131,6 @@ export default function TiendaInventarioModule() {
               path="libreria-gesven/componentes-control"
               element={<ComponentesControlPage />}
             />
-            {/* Rutas existentes */}
-            <Route path="todo-el-stock" element={<AllStock />} />
-            <Route path="stock-actual" element={<CurrentStock />} />
-            <Route path="stock-entrante" element={<InboundStock />} />
-            <Route path="stock-saliente" element={<OutboundStock />} />
-            <Route path="planificador-stock" element={<StockPlanner />} />
-            <Route path="lista-productos" element={<ListaProductosPage />} />
-            <Route path="detalles-producto" element={<ProductDetailsPage />} />
-            <Route path="crear-producto" element={<CrearProductoPage />} />
-            <Route path="editar-producto" element={<EditarProductoPage />} />
-            <Route path="stock-por-producto" element={<PerProductStockPage />} />
-            <Route path="rastrear-envio" element={<TrackShippingPage />} />
-            <Route path="info-producto" element={<ProductInfoPage />} />
-            <Route path="lista-clientes" element={<CustomerList />} />
-            <Route path="detalles-lista-clientes" element={<CustomerListDetails />} />
-            <Route path="modal-configuracion" element={<SettingsModal />} />
-            <Route
-              path="crear-etiqueta-envio"
-              element={<CreateShippingLabelPage />}
-            />
-            <Route path="gestionar-variantes" element={<ManageVariantsPage />} />
-            <Route path="lista-categorias" element={<CategoryList />} />
-            <Route path="crear-categoria" element={<CreateCategoryPage />} />
-            <Route path="editar-categoria" element={<EditarCategoriaPage />} />
-            <Route path="detalles-categoria" element={<CategoryDetails />} />
-            <Route path="lista-pedidos" element={<OrderList />} />
-            <Route path="productos-lista-pedidos" element={<OrderListProducts />} />
-            <Route path="detalles-pedido" element={<OrderDetailsPage />} />
-            <Route path="seguimiento-pedido" element={<OrderTrackingPage />} />
           </Route>
         </Routes>
       </ContextoOrdenesCompraProvider>

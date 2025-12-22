@@ -27,30 +27,9 @@ import {
 } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import type { DatosStockActual } from '../../types';
 
-// Interface for current stock data
-interface CurrentStockData {
-  id: string;
-  productInfo: {
-    image: string;
-    title: string;
-    label: string;
-  };
-  stock: number;
-  rsvd: number;
-  tlvl: number;
-  delta: {
-    label: string;
-    variant: string;
-  };
-  sum: string;
-  lastMoved: string;
-  handler: string;
-  trend: {
-    label: string;
-    variant: string;
-  };
-}
+// Interfaz centralizada para datos de stock actual
 
 interface Item {
   label: string;
@@ -60,7 +39,7 @@ interface Item {
 interface PerProductStockSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data?: CurrentStockData;
+  data?: DatosStockActual;
 }
 
 export function PerProductStockSheet({
@@ -68,7 +47,7 @@ export function PerProductStockSheet({
   onOpenChange,
   data,
 }: PerProductStockSheetProps) {
-  const [items] = useState<Item[]>([
+  const [elementos] = useState<Item[]>([
     { label: 'SKU', info: 'SH-001-BLK-42' },
     { label: 'Category', info: 'Tenis' },
     { label: 'Rating', info: '4' },
@@ -76,7 +55,7 @@ export function PerProductStockSheet({
   ]);
 
   const id = useId();
-  const [checked, setChecked] = useState<boolean>(true);
+  const [estaMarcado, setEstaMarcado] = useState<boolean>(true);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -318,10 +297,10 @@ export function PerProductStockSheet({
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             id={id}
-                            checked={checked}
+                            checked={estaMarcado}
                             onCheckedChange={(value) => {
                               console.log('Checkbox value:', value);
-                              setChecked(value === true);
+                              setEstaMarcado(value === true);
                             }}
                             size="sm"
                           />
@@ -404,10 +383,10 @@ export function PerProductStockSheet({
                         <div className="flex items-center space-x-2">
                           <Checkbox
                             id={id}
-                            checked={checked}
+                            checked={estaMarcado}
                             onCheckedChange={(value) => {
                               console.log('Checkbox value:', value);
-                              setChecked(value === true);
+                              setEstaMarcado(value === true);
                             }}
                             size="sm"
                           />
@@ -440,7 +419,7 @@ export function PerProductStockSheet({
                 </span>
 
                 <div className="flex flex-col gap-3.5 mt-4.5">
-                  {items.map((item: Item) => (
+                  {elementos.map((item: Item) => (
                     <div
                       key={item.label}
                       className="flex items-center lg:gap-6"

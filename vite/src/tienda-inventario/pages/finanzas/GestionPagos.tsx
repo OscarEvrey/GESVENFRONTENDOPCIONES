@@ -19,7 +19,7 @@ import {
   Search,
   Users,
 } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+ 
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -58,7 +58,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { useContextoInstalacion } from '../../context/ContextoInstalacion';
+import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
 
 // ============ TIPOS ============
 interface Factura {
@@ -224,7 +224,7 @@ const clientesConSaldosFicticios: ClienteConSaldo[] = [
 
 // ============ COMPONENTE PRINCIPAL ============
 export function GestionPagosPage() {
-  const { instalacionActiva } = useContextoInstalacion();
+  const instalacionActiva = useInstalacionActivaObligatoria();
   const [clientes, setClientes] = useState<ClienteConSaldo[]>(
     clientesConSaldosFicticios,
   );
@@ -484,11 +484,6 @@ export function GestionPagosPage() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
-
-  // Protección de ruta
-  if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
-  }
 
   return (
     <div className="container-fluid">

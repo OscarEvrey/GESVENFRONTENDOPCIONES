@@ -1,22 +1,10 @@
 import { toAbsoluteUrl } from '@/lib/helpers';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import type { AvatarGrupoItem, Avatares, AvatarGrupoProps } from '../../types';
 
-interface Avatar {
-  path?: string;
-  filename?: string;
-  fallback?: string;
-  variant?: string;
-}
-
-type Avatars = Array<Avatar>;
-
-interface AvatarGroupProp {
-  size?: string;
-  group: Avatar[];
-  more?: { variant?: string; number?: number | string; label?: string };
-  className?: string;
-}
+type Avatar = AvatarGrupoItem;
+type AvatarGroupProp = AvatarGrupoProps;
 
 function AvatarGroup({ size, group, more, className }: AvatarGroupProp) {
   const avatarSize = size ? size : 'size-7';
@@ -67,4 +55,4 @@ function AvatarGroup({ size, group, more, className }: AvatarGroupProp) {
   );
 }
 
-export { AvatarGroup, type Avatar, type Avatars, type AvatarGroupProp };
+export { AvatarGroup, type Avatar, type Avatares as Avatars, type AvatarGroupProp };

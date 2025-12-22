@@ -8,13 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
-
-interface DropdownAppsItem {
-  logo: string;
-  title: string;
-  description: string;
-  checkbox: boolean;
-}
+import type { DropdownAppsItem } from '../../../types';
 
 export function AppsDropdownMenu({ trigger }: { trigger: ReactNode }) {
   const items: DropdownAppsItem[] = [

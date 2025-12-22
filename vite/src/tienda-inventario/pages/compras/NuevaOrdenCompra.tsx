@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { Navigate } from 'react-router-dom';
 import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,7 +40,7 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { useContextoInstalacion } from '../../context/ContextoInstalacion';
+import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
 import { useOrdenesCompra } from '../../context/ContextoOrdenesCompra';
 
 // ============ TIPOS ============
@@ -95,7 +94,7 @@ const lineaSchema = z.object({
 
 // ============ COMPONENTE PRINCIPAL ============
 export function NuevaOrdenCompraPage() {
-  const { instalacionActiva } = useContextoInstalacion();
+  const instalacionActiva = useInstalacionActivaObligatoria();
   const { agregarOrden, generarIdOrden } = useOrdenesCompra();
   const [lineas, setLineas] = useState<LineaOrden[]>([]);
   const [proveedorId, setProveedorId] = useState<string>('');
@@ -123,7 +122,6 @@ export function NuevaOrdenCompraPage() {
 
   // Artículos según tipo de instalación
   const articulos = useMemo(() => {
-    if (!instalacionActiva) return [];
     return instalacionActiva.tipo === 'almacen'
       ? ARTICULOS_ALMACEN
       : ARTICULOS_OFICINAS;
@@ -133,11 +131,6 @@ export function NuevaOrdenCompraPage() {
   const totalOrden = useMemo(() => {
     return lineas.reduce((acc, linea) => acc + linea.subtotal, 0);
   }, [lineas]);
-
-  // Protección de ruta
-  if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
-  }
 
   // Manejar selección de artículo
   const handleArticuloChange = (articuloId: string) => {

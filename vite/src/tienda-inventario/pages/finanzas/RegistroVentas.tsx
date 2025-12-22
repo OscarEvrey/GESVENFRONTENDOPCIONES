@@ -18,7 +18,7 @@ import {
   Trash2,
   User,
 } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -45,7 +45,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { useContextoInstalacion } from '../../context/ContextoInstalacion';
 
 // ============ TIPOS ============
 interface Cliente {
@@ -293,7 +292,7 @@ const productosOficinasConStock: ProductoDisponible[] = [
 
 // ============ COMPONENTE PRINCIPAL ============
 export function RegistroVentasPage() {
-  const { instalacionActiva } = useContextoInstalacion();
+  const instalacionActiva = useInstalacionActivaObligatoria();
 
   // Estados del formulario
   const [clienteId, setClienteId] = useState<string>('');
@@ -307,7 +306,6 @@ export function RegistroVentasPage() {
 
   // Obtener productos con stock > 0 según la instalación
   const productosDisponibles = useMemo(() => {
-    if (!instalacionActiva) return [];
     const productos =
       instalacionActiva.tipo === 'almacen'
         ? productosAlmacenConStock
@@ -490,11 +488,6 @@ export function RegistroVentasPage() {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-
-  // Protección de ruta
-  if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
-  }
 
   return (
     <div className="container-fluid">

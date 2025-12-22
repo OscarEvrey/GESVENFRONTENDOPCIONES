@@ -5,20 +5,16 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from 'react';
 
-// ============ TIPOS ============
-export interface Instalacion {
-  id: string;
-  nombre: string;
-  tipo: 'almacen' | 'oficinas';
-  empresa: string;
-  ubicacion: string;
-  descripcion: string;
-}
+import type { Instalacion } from '../types';
 
+export type { Instalacion } from '../types';
+
+// ============ TIPOS ============
 interface ContextoInstalacionValor {
   instalacionActiva: Instalacion | null;
   instalaciones: Instalacion[];
@@ -77,12 +73,36 @@ export function ContextoInstalacionProvider({
 }: ContextoInstalacionProviderProps) {
   const [instalacionActiva, setInstalacionActiva] = useState<Instalacion | null>(null);
 
+  const claveLocalStorage = 'gesven.instalacionActivaId';
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const idGuardado = window.localStorage.getItem(claveLocalStorage);
+    if (!idGuardado) return;
+
+    const instalacionEncontrada = INSTALACIONES_BASE.find((i) => i.id === idGuardado) ?? null;
+    if (!instalacionEncontrada) {
+      window.localStorage.removeItem(claveLocalStorage);
+      return;
+    }
+
+    setInstalacionActiva(instalacionEncontrada);
+  }, []);
+
   const seleccionarInstalacion = useCallback((instalacion: Instalacion) => {
     setInstalacionActiva(instalacion);
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(claveLocalStorage, instalacion.id);
+    }
   }, []);
 
   const limpiarInstalacion = useCallback(() => {
     setInstalacionActiva(null);
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(claveLocalStorage);
+    }
   }, []);
 
   const valor = useMemo<ContextoInstalacionValor>(
@@ -111,4 +131,16 @@ export function useContextoInstalacion(): ContextoInstalacionValor {
     );
   }
   return contexto;
+}
+
+export function useInstalacionActivaObligatoria(): Instalacion {
+  const { instalacionActiva } = useContextoInstalacion();
+
+  if (!instalacionActiva) {
+    throw new Error(
+      'No hay instalación activa. Este componente requiere una instalación seleccionada.',
+    );
+  }
+
+  return instalacionActiva;
 }

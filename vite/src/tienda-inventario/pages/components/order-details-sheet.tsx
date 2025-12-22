@@ -21,30 +21,9 @@ import { Separator } from '@/components/ui/separator';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Stepper, StepperItem, StepperNav, StepperTrigger } from '@/components/ui/stepper'; 
+import type { DatosStockActual } from '../../types';
 
-// Interface for current stock data
-interface CurrentStockData {
-  id: string;
-  productInfo: {
-    image: string;
-    title: string;
-    label: string;
-  };
-  stock: number;
-  rsvd: number;
-  tlvl: number;
-  delta: {
-    label: string;
-    variant: string;
-  };
-  sum: string;
-  lastMoved: string;
-  handler: string;
-  trend: {
-    label: string;
-    variant: string;
-  };
-}
+// Interfaz centralizada para datos de stock actual
 
 interface Item { 
   logo: string;
@@ -57,9 +36,9 @@ interface Item {
 interface OrderDetailsSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data?: CurrentStockData;
-  onClose?: () => void; // Added onClose prop
-  onTrackShipping?: () => void; // Optional callback for track shipping
+  data?: DatosStockActual;
+  onClose?: () => void; // Prop onClose agregada
+  onTrackShipping?: () => void; // Callback opcional para rastrear envío
 }
 
 export function OrderDetailsSheet({
@@ -68,16 +47,16 @@ export function OrderDetailsSheet({
   onTrackShipping,
 }: OrderDetailsSheetProps) {
 
-  const [currentStep] = useState(2);
+  const [pasoActual] = useState(2);
 
-  const steps = [
+  const pasos = [
     { title: "Picking" },
     { title: "Packed" },
     { title: "Shipping" },
     { title: "Entregado" },
   ];
 
-  const items: Item[] = [
+  const articulos: Item[] = [
     {
       logo: '15.png',
       title: 'Nike Air Max 270 React SE',
@@ -94,7 +73,7 @@ export function OrderDetailsSheet({
     },
   ]; 
 
-  const prices = {
+  const precios = {
     'Subtotal': '$320.00',
     'Shipping': '$10.00',
     'Tax': '$20.00',
@@ -185,7 +164,7 @@ export function OrderDetailsSheet({
                   </CardHeader>
 
                   <CardContent>
-                    {items.map((item, index) => (
+                    {articulos.map((item, index) => (
                       <React.Fragment key={index}>
                         <div className="flex flex-col p-0">
                           <div className="flex items-center flex-wrap sm:flex-nowrap w-full justify-between gap-3.5">
@@ -242,7 +221,7 @@ export function OrderDetailsSheet({
                             </div>
                           </div>
 
-                          {index !== items.length - 1 && (
+                          {index !== articulos.length - 1 && (
                             <Separator className="my-3.5" />
                           )}
                         </div>
@@ -286,12 +265,12 @@ export function OrderDetailsSheet({
                       </Button>
                     </div>
 
-                    <Stepper defaultValue={currentStep} className="w-full p-5 pt-3">
+                    <Stepper defaultValue={pasoActual} className="w-full p-5 pt-3">
                       <StepperNav className="flex w-full flex-wrap gap-2">   
-                        {steps.map((step, index) => {
+                        {pasos.map((step, index) => {
                           const stepNumber = index + 1;
-                          const isCompleted = stepNumber < currentStep;
-                          const isActive = stepNumber === currentStep;
+                          const isCompleted = stepNumber < pasoActual;
+                          const isActive = stepNumber === pasoActual;
 
                           return (
                             <StepperItem
@@ -301,9 +280,9 @@ export function OrderDetailsSheet({
                             >
                               <StepperTrigger className="flex flex-col items-center w-full">
                                 <div className="h-1.5 w-full mt-2 rounded-full bg-border relative">
-                                  {index === steps.length - 2 ? (
+                                  {index === pasos.length - 2 ? (
                                     <div className="h-full w-1/2 bg-green-500 absolute top-0 left-0 rounded-l-full mb-5" />
-                                  ) : index < steps.length - 2 ? (
+                                  ) : index < pasos.length - 2 ? (
                                     <div className="h-full w-full bg-green-500 absolute top-0 left-0 rounded-full" />
                                   ) : null}
                                 </div>
@@ -311,12 +290,12 @@ export function OrderDetailsSheet({
                                 {/* Ikonka */}
                                 <div className="flex items-center gap-0.5 w-full -ms-1">
                                   <div className="flex items-center gap-1">
-                                    {index === steps.length - 2 ? (
+                                    {index === pasos.length - 2 ? (
                                       <CircleCheck
                                         className="text-green-500 border-background border-2"
                                         size={18}
                                       />
-                                    ) : index < steps.length - 2 ? (
+                                    ) : index < pasos.length - 2 ? (
                                       <CircleCheck
                                         className="fill-green-500 text-background"
                                         size={18}
@@ -379,7 +358,7 @@ export function OrderDetailsSheet({
                       <span className="text-sm font-medium text-foreground">
                         Price Details
                       </span>
-                      {Object.entries(prices).map(([key, value]) => (
+                      {Object.entries(precios).map(([key, value]) => (
                         <div
                           key={key}
                           className="flex items-center justify-between"

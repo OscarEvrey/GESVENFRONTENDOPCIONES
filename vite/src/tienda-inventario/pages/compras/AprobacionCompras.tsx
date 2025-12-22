@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -19,7 +19,7 @@ import {
   Search,
   XCircle,
 } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+ 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -56,7 +56,7 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { useContextoInstalacion } from '../../context/ContextoInstalacion';
+import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
 import {
   OrdenCompra,
   useOrdenesCompra,
@@ -64,7 +64,7 @@ import {
 
 // ============ COMPONENTE PRINCIPAL ============
 export function AprobacionComprasPage() {
-  const { instalacionActiva } = useContextoInstalacion();
+  const instalacionActiva = useInstalacionActivaObligatoria();
   const {
     obtenerOrdenesPendientesPorInstalacion,
     aprobarOrden,
@@ -85,7 +85,6 @@ export function AprobacionComprasPage() {
 
   // Obtener órdenes pendientes de la instalación activa
   const ordenesPendientes = useMemo(() => {
-    if (!instalacionActiva) return [];
     return obtenerOrdenesPendientesPorInstalacion(instalacionActiva.id);
   }, [instalacionActiva, obtenerOrdenesPendientesPorInstalacion]);
 
@@ -101,15 +100,15 @@ export function AprobacionComprasPage() {
   }, [ordenesPendientes, busqueda]);
 
   // Funciones de acciones - definidas antes de useMemo para columns
-  const handleAprobar = (ordenId: string) => {
+  const handleAprobar = useCallback((ordenId: string) => {
     aprobarOrden(ordenId);
     toast.success(`Orden ${ordenId} aprobada exitosamente`);
-  };
+  }, [aprobarOrden]);
 
-  const abrirModalRechazo = (ordenId: string) => {
+  const abrirModalRechazo = useCallback((ordenId: string) => {
     setModalRechazo({ abierto: true, ordenId });
     setMotivoRechazo('');
-  };
+  }, []);
 
   const cerrarModalRechazo = () => {
     setModalRechazo({ abierto: false, ordenId: '' });
@@ -234,7 +233,7 @@ export function AprobacionComprasPage() {
         size: 200,
       },
     ],
-    [ordenExpandida],
+    [abrirModalRechazo, handleAprobar, ordenExpandida],
   );
 
   const table = useReactTable({
@@ -248,11 +247,6 @@ export function AprobacionComprasPage() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
-
-  // Protección de ruta
-  if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
-  }
 
   return (
     <div className="container-fluid">

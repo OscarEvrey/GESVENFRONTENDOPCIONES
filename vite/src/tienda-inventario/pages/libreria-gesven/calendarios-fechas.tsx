@@ -297,7 +297,7 @@ const productosCaducidad: ProductoCaducidad[] = [
 ];
 
 function CalendarioCaducidades() {
-  const hoy = new Date();
+  const hoy = useMemo(() => new Date(), []);
   const [mesActual, setMesActual] = useState<Date>(hoy);
   const [filtro, setFiltro] = useState<'todos' | 'vencidos' | 'proximos' | 'seguros'>('todos');
 

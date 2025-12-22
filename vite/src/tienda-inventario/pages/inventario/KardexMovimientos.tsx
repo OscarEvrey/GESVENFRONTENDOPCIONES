@@ -19,7 +19,7 @@ import {
   Search,
   User,
 } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+ 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,7 +45,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useContextoInstalacion } from '../../context/ContextoInstalacion';
+import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
 
 // ============ TIPOS ============
 interface MovimientoKardex {
@@ -409,7 +409,7 @@ const movimientosOficinas: MovimientoKardex[] = [
 
 // ============ COMPONENTE PRINCIPAL ============
 export function KardexMovimientosPage() {
-  const { instalacionActiva } = useContextoInstalacion();
+  const instalacionActiva = useInstalacionActivaObligatoria();
   const [busqueda, setBusqueda] = useState('');
   const [tipoFiltro, setTipoFiltro] = useState<string>('');
   const [fechaDesde, setFechaDesde] = useState<string>('');
@@ -424,7 +424,6 @@ export function KardexMovimientosPage() {
 
   // Seleccionar datos según el tipo de instalación
   const datosBase = useMemo(() => {
-    if (!instalacionActiva) return [];
     return instalacionActiva.tipo === 'almacen'
       ? movimientosAlmacen
       : movimientosOficinas;
@@ -676,11 +675,6 @@ export function KardexMovimientosPage() {
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
-
-  // Protección de ruta
-  if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
-  }
 
   return (
     <div className="container-fluid">

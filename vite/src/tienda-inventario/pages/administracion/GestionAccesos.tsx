@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -15,7 +15,6 @@ import {
   Clock,
   Edit2,
   Key,
-  Lock,
   Plus,
   Search,
   Shield,
@@ -23,7 +22,7 @@ import {
   UserCheck,
   Users,
 } from 'lucide-react';
-import { Navigate } from 'react-router-dom';
+ 
 import { Alert, AlertDescription, AlertIcon, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -281,7 +280,7 @@ const historialAuditoriaInicial: RegistroAuditoria[] = [
 
 // ============ COMPONENTE PRINCIPAL ============
 export function GestionAccesosPage() {
-  const { instalacionActiva, instalaciones } = useContextoInstalacion();
+  const { instalaciones } = useContextoInstalacion();
   const [datos, setDatos] = useState<AccesoUsuario[]>(datosIniciales);
   const [historialAuditoria, setHistorialAuditoria] = useState<RegistroAuditoria[]>(historialAuditoriaInicial);
   const [busqueda, setBusqueda] = useState('');
@@ -308,11 +307,6 @@ export function GestionAccesosPage() {
     },
     activo: true,
   });
-
-  // Redirigir si no hay instalación activa
-  if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
-  }
 
   // Datos filtrados
   const datosFiltrados = useMemo(() => {
@@ -358,7 +352,7 @@ export function GestionAccesosPage() {
     setDialogoAbierto(true);
   };
 
-  const handleEditar = (acceso: AccesoUsuario) => {
+  const handleEditar = useCallback((acceso: AccesoUsuario) => {
     setAccesoEditando(acceso);
     setFormulario({
       usuarioId: acceso.usuarioId,
@@ -369,7 +363,7 @@ export function GestionAccesosPage() {
     });
     setErrores([]);
     setDialogoAbierto(true);
-  };
+  }, []);
 
   const handleRolChange = (rol: RolAcceso) => {
     setFormulario({
@@ -480,7 +474,7 @@ export function GestionAccesosPage() {
     setTimeout(() => setMensajeExito(null), 5000);
   };
 
-  const handleRevocar = (acceso: AccesoUsuario) => {
+  const handleRevocar = useCallback((acceso: AccesoUsuario) => {
     const fechaActual = new Date().toISOString().split('T')[0];
     
     setDatos(datos.filter((d) => d.id !== acceso.id));
@@ -500,7 +494,7 @@ export function GestionAccesosPage() {
       `Acceso revocado. Registro de auditoría guardado: Usuario 1 - ${fechaActual}`
     );
     setTimeout(() => setMensajeExito(null), 5000);
-  };
+  }, [datos, historialAuditoria]);
 
   // Columnas de la tabla
   const columnas: ColumnDef<AccesoUsuario>[] = useMemo(
@@ -610,7 +604,7 @@ export function GestionAccesosPage() {
         ),
       },
     ],
-    [],
+    [handleEditar, handleRevocar],
   );
 
   // Tabla

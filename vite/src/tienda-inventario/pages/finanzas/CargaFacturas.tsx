@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -39,8 +39,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { Navigate } from 'react-router-dom';
-import { useContextoInstalacion } from '../../context/ContextoInstalacion';
+import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
 
 // ============ TIPOS ============
 interface DocumentoPendiente {
@@ -128,7 +127,7 @@ const documentosPendientesFicticios: DocumentoPendiente[] = [
 
 // ============ COMPONENTE PRINCIPAL ============
 export function CargaFacturasPage() {
-  const { instalacionActiva } = useContextoInstalacion();
+  const instalacionActiva = useInstalacionActivaObligatoria();
   const [documentos, setDocumentos] = useState<DocumentoPendiente[]>(
     documentosPendientesFicticios,
   );
@@ -166,7 +165,7 @@ export function CargaFacturasPage() {
   }, [documentos]);
 
   // Simular carga de archivo
-  const simularCargaArchivo = (docId: string, tipoArchivo: 'xml' | 'pdf') => {
+  const simularCargaArchivo = useCallback((docId: string, tipoArchivo: 'xml' | 'pdf') => {
     const nombreArchivo =
       tipoArchivo === 'xml' ? `factura_${docId}.xml` : `factura_${docId}.pdf`;
 
@@ -191,10 +190,10 @@ export function CargaFacturasPage() {
         return doc;
       }),
     );
-  };
+  }, []);
 
   // Finalizar documento
-  const finalizarDocumento = (docId: string) => {
+  const finalizarDocumento = useCallback((docId: string) => {
     const doc = documentos.find((d) => d.id === docId);
     if (!doc || !doc.archivoXML || !doc.archivoPDF) {
       alert('Debe cargar ambos archivos (XML y PDF) para finalizar.');
@@ -214,7 +213,7 @@ export function CargaFacturasPage() {
     setTimeout(() => {
       setMensajeExito('');
     }, 5000);
-  };
+  }, [documentos]);
 
   // Columnas de la tabla
   const columns = useMemo<ColumnDef<DocumentoPendiente>[]>(
@@ -389,7 +388,7 @@ export function CargaFacturasPage() {
         size: 120,
       },
     ],
-    [],
+    [finalizarDocumento, simularCargaArchivo],
   );
 
   const table = useReactTable({
@@ -399,11 +398,6 @@ export function CargaFacturasPage() {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
-
-  // Protección de ruta
-  if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
-  }
 
   return (
     <div className="container-fluid">
