@@ -3,6 +3,7 @@ using GesvenApi.DTOs;
 using GesvenApi.Modelos.Compras;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static GesvenApi.ConstantesGesven;
 
 namespace GesvenApi.Controladores;
 
@@ -14,7 +15,6 @@ namespace GesvenApi.Controladores;
 public class ComprasController : ControllerBase
 {
     private readonly GesvenDbContext _contexto;
-    private const int EstatusPendienteId = 3; // Pendiente
 
     public ComprasController(GesvenDbContext contexto)
     {
@@ -103,7 +103,7 @@ public class ComprasController : ControllerBase
             {
                 InstalacionId = dto.InstalacionId,
                 ProveedorId = dto.ProveedorId,
-                EstatusId = EstatusPendienteId, // Pendiente
+                EstatusId = EstatusIds.Pendiente,
                 MontoTotal = montoTotal,
                 Comentarios = dto.Comentarios,
                 Detalles = detalles

@@ -1,7 +1,8 @@
 /**
  * Configuración de la API de Gesven
+ * El puerto por defecto 5022 coincide con launchSettings.json del backend
  */
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5022';
 
 /**
  * Tipos de respuesta de la API

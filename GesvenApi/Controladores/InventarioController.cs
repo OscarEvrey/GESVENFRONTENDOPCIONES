@@ -2,6 +2,7 @@ using GesvenApi.Datos;
 using GesvenApi.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static GesvenApi.ConstantesGesven;
 
 namespace GesvenApi.Controladores;
 
@@ -98,7 +99,7 @@ public class InventarioController : ControllerBase
                 {
                     ProductoId = p.ProductoId,
                     Nombre = p.Nombre,
-                    CostoSugerido = p.PrecioUnitario * 0.7m // El costo sugerido es ~70% del precio de venta
+                    CostoSugerido = p.PrecioUnitario * FactorCostoSugerido
                 })
                 .ToListAsync();
 

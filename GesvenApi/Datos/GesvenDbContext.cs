@@ -5,6 +5,7 @@ using GesvenApi.Modelos.Inventario;
 using GesvenApi.Modelos.Organizacion;
 using GesvenApi.Modelos.Seguridad;
 using Microsoft.EntityFrameworkCore;
+using static GesvenApi.ConstantesGesven;
 
 namespace GesvenApi.Datos;
 
@@ -13,9 +14,6 @@ namespace GesvenApi.Datos;
 /// </summary>
 public class GesvenDbContext : DbContext
 {
-    // Usuario del sistema para auditoría automática
-    private const int UsuarioSistemaId = 1;
-
     public GesvenDbContext(DbContextOptions<GesvenDbContext> options) : base(options)
     {
     }

@@ -3,9 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Obtener cadena de conexión desde configuración
+var connectionString = builder.Configuration.GetConnectionString("GesvenDb") 
+    ?? "Data Source=gesven_dev.db";
+
 // Configurar Entity Framework Core con SQLite
 builder.Services.AddDbContext<GesvenDbContext>(options =>
-    options.UseSqlite("Data Source=gesven_dev.db"));
+    options.UseSqlite(connectionString));
 
 // Agregar controladores
 builder.Services.AddControllers();
