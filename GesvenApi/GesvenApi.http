@@ -1,0 +1,6 @@
+@GesvenApi_HostAddress = http://localhost:5022
+
+GET {{GesvenApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
