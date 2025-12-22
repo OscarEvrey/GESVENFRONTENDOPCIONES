@@ -1,4 +1,5 @@
 import {
+  Ban,
   Banknote,
   Building2,
   CalendarDays,
@@ -13,7 +14,9 @@ import {
   ShoppingBag,
   ShoppingCart,
   Table2,
+  Tag,
   Truck,
+  Users,
 } from 'lucide-react';
 import { MenuConfig } from './types';
 
@@ -63,6 +66,21 @@ export const MENU_SIDEBAR: MenuConfig = [
     title: 'Gestión de Pagos',
     icon: Banknote,
     path: '/tienda-inventario/gestion-pagos',
+  },
+  {
+    title: 'Cancelaciones y Auditoría',
+    icon: Ban,
+    path: '/tienda-inventario/monitor-cancelaciones',
+  },
+  {
+    title: 'Catálogo de Clientes y Proveedores',
+    icon: Users,
+    path: '/tienda-inventario/clientes-proveedores',
+  },
+  {
+    title: 'Catálogo de Artículos',
+    icon: Tag,
+    path: '/tienda-inventario/articulos',
   },
   // ============ LIBRERÍA DEL TEMPLATE ============
   { heading: 'Librería del Template' },

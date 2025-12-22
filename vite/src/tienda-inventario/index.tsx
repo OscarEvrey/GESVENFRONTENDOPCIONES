@@ -46,6 +46,11 @@ import { AprobacionComprasPage } from './pages/compras/AprobacionCompras';
 import { RegistroVentasPage } from './pages/finanzas/RegistroVentas';
 import { CargaFacturasPage } from './pages/finanzas/CargaFacturas';
 import { GestionPagosPage } from './pages/finanzas/GestionPagos';
+// Páginas de Administración
+import { MonitorCancelacionesPage } from './pages/administracion/MonitorCancelaciones';
+// Páginas de Catálogos
+import { ClientesProveedoresPage } from './pages/catalogos/ClientesProveedores';
+import { ArticulosPage } from './pages/catalogos/Articulos';
 
 export default function TiendaInventarioModule() {
   return (
@@ -64,6 +69,9 @@ export default function TiendaInventarioModule() {
             <Route path="registro-ventas" element={<RegistroVentasPage />} />
             <Route path="carga-facturas" element={<CargaFacturasPage />} />
             <Route path="gestion-pagos" element={<GestionPagosPage />} />
+            <Route path="monitor-cancelaciones" element={<MonitorCancelacionesPage />} />
+            <Route path="clientes-proveedores" element={<ClientesProveedoresPage />} />
+            <Route path="articulos" element={<ArticulosPage />} />
             {/* Ruta de tablero */}
             <Route path="tablero" element={<TableroPage />} />
             <Route path="dark-sidebar" element={<TableroPage />} />
