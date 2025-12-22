@@ -889,7 +889,7 @@ const AllStockTable = ({ datosMock: datosMockProps }: AllStockProps) => {
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const [, setSelectedProduct] = useState<IData | undefined>(
     undefined,
   );
