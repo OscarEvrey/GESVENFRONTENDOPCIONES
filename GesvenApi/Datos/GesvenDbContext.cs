@@ -49,6 +49,7 @@ public class GesvenDbContext : DbContext
         // Configuración de EstatusGeneral
         modelBuilder.Entity<EstatusGeneral>(entity =>
         {
+            entity.ToTable("EstatusGeneral", "Aud");
             entity.HasKey(e => e.EstatusId);
             entity.Property(e => e.Nombre).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Modulo).HasMaxLength(50).IsRequired();
@@ -57,6 +58,7 @@ public class GesvenDbContext : DbContext
         // Configuración de Usuario
         modelBuilder.Entity<Usuario>(entity =>
         {
+            entity.ToTable("Usuario", "Seg");
             entity.HasKey(e => e.UsuarioId);
             entity.HasIndex(e => e.Email).IsUnique();
             entity.Property(e => e.Email).HasMaxLength(255).IsRequired();
@@ -68,6 +70,7 @@ public class GesvenDbContext : DbContext
         // Configuración de Rol
         modelBuilder.Entity<Rol>(entity =>
         {
+            entity.ToTable("Rol", "Seg");
             entity.HasKey(e => e.RolId);
             entity.Property(e => e.Nombre).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Descripcion).HasMaxLength(200);
@@ -76,6 +79,7 @@ public class GesvenDbContext : DbContext
         // Configuración de Empresa
         modelBuilder.Entity<Empresa>(entity =>
         {
+            entity.ToTable("Empresa", "Org");
             entity.HasKey(e => e.EmpresaId);
             entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
             entity.Property(e => e.RFC).HasMaxLength(13);
@@ -85,6 +89,7 @@ public class GesvenDbContext : DbContext
         // Configuración de Sucursal
         modelBuilder.Entity<Sucursal>(entity =>
         {
+            entity.ToTable("Sucursal", "Org");
             entity.HasKey(e => e.SucursalId);
             entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
             entity.HasOne(e => e.Empresa)
@@ -95,6 +100,7 @@ public class GesvenDbContext : DbContext
         // Configuración de Instalacion
         modelBuilder.Entity<Instalacion>(entity =>
         {
+            entity.ToTable("Instalacion", "Org");
             entity.HasKey(e => e.InstalacionId);
             entity.Property(e => e.Nombre).HasMaxLength(150).IsRequired();
             entity.Property(e => e.Tipo).HasMaxLength(50).IsRequired();
@@ -106,6 +112,7 @@ public class GesvenDbContext : DbContext
         // Configuración de AccesoInstalacion
         modelBuilder.Entity<AccesoInstalacion>(entity =>
         {
+            entity.ToTable("AccesoInstalacion", "Seg");
             entity.HasKey(e => e.AccesoId);
             entity.HasOne(e => e.Usuario)
                   .WithMany(e => e.Accesos)
@@ -121,6 +128,7 @@ public class GesvenDbContext : DbContext
         // Configuración de Marca
         modelBuilder.Entity<Marca>(entity =>
         {
+            entity.ToTable("Marca", "Inv");
             entity.HasKey(e => e.MarcaId);
             entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
         });
@@ -128,6 +136,7 @@ public class GesvenDbContext : DbContext
         // Configuración de UnidadMedida
         modelBuilder.Entity<UnidadMedida>(entity =>
         {
+            entity.ToTable("UnidadMedida", "Inv");
             entity.HasKey(e => e.UnidadId);
             entity.Property(e => e.Nombre).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Simbolo).HasMaxLength(10).IsRequired();
@@ -136,6 +145,7 @@ public class GesvenDbContext : DbContext
         // Configuración de Producto
         modelBuilder.Entity<Producto>(entity =>
         {
+            entity.ToTable("Producto", "Inv");
             entity.HasKey(e => e.ProductoId);
             entity.Property(e => e.Nombre).HasMaxLength(200).IsRequired();
             entity.Property(e => e.Codigo).HasMaxLength(50);
@@ -153,6 +163,7 @@ public class GesvenDbContext : DbContext
         // Configuración de Movimiento
         modelBuilder.Entity<Movimiento>(entity =>
         {
+            entity.ToTable("Movimiento", "Inv");
             entity.HasKey(e => e.MovimientoId);
             entity.Property(e => e.TipoMovimiento).IsRequired();
             entity.Property(e => e.Cantidad).HasPrecision(18, 4).IsRequired();
@@ -170,6 +181,7 @@ public class GesvenDbContext : DbContext
         // Configuración de Proveedor
         modelBuilder.Entity<Proveedor>(entity =>
         {
+            entity.ToTable("Proveedor", "Comp");
             entity.HasKey(e => e.ProveedorId);
             entity.Property(e => e.Nombre).HasMaxLength(200).IsRequired();
             entity.Property(e => e.RFC).HasMaxLength(13);
@@ -179,6 +191,7 @@ public class GesvenDbContext : DbContext
         // Configuración de OrdenCompra
         modelBuilder.Entity<OrdenCompra>(entity =>
         {
+            entity.ToTable("OrdenCompra", "Comp");
             entity.HasKey(e => e.OrdenCompraId);
             entity.Property(e => e.MontoTotal).HasPrecision(18, 2);
             entity.Property(e => e.Comentarios).HasMaxLength(500);
@@ -197,6 +210,7 @@ public class GesvenDbContext : DbContext
         // Configuración de OrdenCompraDetalle
         modelBuilder.Entity<OrdenCompraDetalle>(entity =>
         {
+            entity.ToTable("OrdenCompraDetalle", "Comp");
             entity.HasKey(e => e.DetalleId);
             entity.Property(e => e.CantidadSolicitada).HasPrecision(18, 4);
             entity.Property(e => e.CantidadRecibida).HasPrecision(18, 4);

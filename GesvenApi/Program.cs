@@ -7,9 +7,24 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("GesvenDb") 
     ?? "Data Source=gesven_dev.db";
 
-// Configurar Entity Framework Core con SQLite
+// Configurar Entity Framework Core (SQLite por defecto, SQL Server si aplica)
 builder.Services.AddDbContext<GesvenDbContext>(options =>
-    options.UseSqlite(connectionString));
+{
+    var esSqlServer =
+        connectionString.Contains("Initial Catalog=", StringComparison.OrdinalIgnoreCase) ||
+        connectionString.Contains("TrustServerCertificate", StringComparison.OrdinalIgnoreCase) ||
+        connectionString.Contains("MultipleActiveResultSets", StringComparison.OrdinalIgnoreCase) ||
+        connectionString.Contains("Encrypt=", StringComparison.OrdinalIgnoreCase);
+
+    if (esSqlServer)
+    {
+        options.UseSqlServer(connectionString);
+    }
+    else
+    {
+        options.UseSqlite(connectionString);
+    }
+});
 
 // Agregar controladores
 builder.Services.AddControllers();
@@ -38,7 +53,12 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<GesvenDbContext>();
-    context.Database.EnsureCreated();
+    // Solo crear automáticamente para SQLite (dev local). Para SQL Server real,
+    // se asume que la BD ya existe y está administrada fuera de la app.
+    if (context.Database.IsSqlite())
+    {
+        context.Database.EnsureCreated();
+    }
 }
 
 // Configure the HTTP request pipeline.
@@ -50,7 +70,10 @@ if (app.Environment.IsDevelopment())
 // Habilitar CORS
 app.UseCors("PermitirFrontend");
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 // Mapear controladores
 app.MapControllers();
