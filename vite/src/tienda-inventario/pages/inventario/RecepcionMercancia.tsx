@@ -245,7 +245,7 @@ export function RecepcionMercanciaPage() {
 
   // Protección de ruta
   if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
+    return <Navigate to="/selector-instalacion" replace />;
   }
 
   return (

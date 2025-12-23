@@ -74,7 +74,8 @@ export function NuevaOrdenCompraPage() {
   const [proveedorId, setProveedorId] = useState<string>('');
   const [comentarios, setComentarios] = useState<string>('');
 
-  const { instalaciones: instalacionesApi } = useInstalacionesApi();
+  // Se mantiene el hook para precargar instalaciones (útil para validar backend en background)
+  useInstalacionesApi();
   const { proveedores, cargando: cargandoProveedores, error: errorProveedores } = useProveedoresApi();
   const { crearOrden, creando } = useCrearOrdenCompra();
 
@@ -101,13 +102,8 @@ export function NuevaOrdenCompraPage() {
     day: '2-digit',
   });
 
-  // Resolver InstalacionId numérico del backend
-  const instalacionApiId = useMemo(() => {
-    const match = instalacionesApi.find(
-      (i) => i.nombre.toLowerCase() === instalacionActiva.nombre.toLowerCase(),
-    );
-    return match?.instalacionId ?? null;
-  }, [instalacionesApi, instalacionActiva.nombre]);
+  // InstalacionId numérico del backend ya viene del ContextoInstalacion
+  const instalacionApiId = useMemo(() => instalacionActiva.instalacionId, [instalacionActiva.instalacionId]);
 
   const {
     productos: productosParaCompra,

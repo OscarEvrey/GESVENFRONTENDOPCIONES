@@ -39,6 +39,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
+import { useInventarioApi } from '../../hooks/useGesvenApi';
 
 // ============ TIPOS ============
 interface ProductoInventario {
@@ -362,10 +363,27 @@ export function InventarioActualPage() {
   });
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  // Seleccionar datos según el tipo de instalación (o vacío si no hay instalación)
+  const {
+    productos: productosApi,
+    cargando: cargandoInventario,
+    error: errorInventario,
+  } = useInventarioApi(instalacionActiva.instalacionId);
+
+  // Datos desde backend (GET /api/inventario/{instalacionId})
   const datosBase = useMemo(() => {
-    return instalacionActiva.tipo === 'almacen' ? productosAlmacen : productosOficinas;
-  }, [instalacionActiva]);
+    return productosApi.map((p) => ({
+      id: String(p.productoId),
+      codigo: p.codigo,
+      nombre: p.nombre,
+      categoria: p.categoria,
+      unidad: p.unidad,
+      stockActual: p.stockActual,
+      stockMinimo: p.stockMinimo,
+      precioUnitario: p.precioUnitario,
+      estado: p.estado,
+      ubicacion: p.ubicacion,
+    } satisfies ProductoInventario));
+  }, [productosApi]);
 
   // Obtener categorías únicas
   const categorias = useMemo(() => {
@@ -548,6 +566,14 @@ export function InventarioActualPage() {
             </div>
           </CardContent>
         </Card>
+
+        {cargandoInventario && (
+          <div className="text-sm text-muted-foreground">Cargando inventario...</div>
+        )}
+
+        {errorInventario && (
+          <div className="text-sm text-destructive">{errorInventario}</div>
+        )}
 
         {/* Estadísticas Rápidas */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
