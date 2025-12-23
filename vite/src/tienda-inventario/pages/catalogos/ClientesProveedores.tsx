@@ -274,21 +274,49 @@ function ClientesProveedoresContenido() {
     return resultado;
   }, [datos, tabActiva, busqueda]);
 
+  // Validar RFC con formato SAT (12 caracteres para morales, 13 para físicas)
+  const validarRFC = (rfc: string): { valido: boolean; mensaje: string } => {
+    const rfcLimpio = rfc.trim().toUpperCase();
+    
+    // Validar que solo contenga caracteres alfanuméricos
+    const regexAlfanumerico = /^[A-Z0-9]+$/;
+    if (!regexAlfanumerico.test(rfcLimpio)) {
+      return { valido: false, mensaje: 'El RFC solo puede contener letras y números' };
+    }
+    
+    // Validar longitud exacta (12 para personas morales, 13 para personas físicas)
+    if (rfcLimpio.length !== 12 && rfcLimpio.length !== 13) {
+      return { 
+        valido: false, 
+        mensaje: 'El RFC debe tener exactamente 12 caracteres (persona moral) o 13 caracteres (persona física)' 
+      };
+    }
+    
+    return { valido: true, mensaje: '' };
+  };
+
   // Validar formulario
   const validarFormulario = (): boolean => {
     const nuevosErrores: Record<string, string> = {};
 
-    // RFC obligatorio y único
+    // RFC obligatorio, formato SAT válido y único
     if (!formulario.rfc?.trim()) {
       nuevosErrores.rfc = 'El RFC es obligatorio';
     } else {
-      const rfcExiste = datos.some(
-        (d) =>
-          d.rfc.toUpperCase() === formulario.rfc?.toUpperCase() &&
-          d.id !== entidadEditando?.id,
-      );
-      if (rfcExiste) {
-        nuevosErrores.rfc = 'Este RFC ya está registrado en el sistema';
+      // Validar formato RFC SAT
+      const validacionRFC = validarRFC(formulario.rfc);
+      if (!validacionRFC.valido) {
+        nuevosErrores.rfc = validacionRFC.mensaje;
+      } else {
+        // Validar unicidad solo si el formato es correcto
+        const rfcExiste = datos.some(
+          (d) =>
+            d.rfc.toUpperCase() === formulario.rfc?.toUpperCase() &&
+            d.id !== entidadEditando?.id,
+        );
+        if (rfcExiste) {
+          nuevosErrores.rfc = 'Este RFC ya está registrado en el sistema';
+        }
       }
     }
 

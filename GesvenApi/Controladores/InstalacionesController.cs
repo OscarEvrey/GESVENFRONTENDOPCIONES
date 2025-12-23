@@ -2,6 +2,7 @@ using GesvenApi.Datos;
 using GesvenApi.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static GesvenApi.ConstantesGesven;
 
 namespace GesvenApi.Controladores;
 
@@ -13,25 +14,44 @@ namespace GesvenApi.Controladores;
 public class InstalacionesController : ControllerBase
 {
     private readonly GesvenDbContext _contexto;
-    private const int UsuarioActualId = 1; // Usuario del sistema
+    private readonly ILogger<InstalacionesController> _logger;
 
-    public InstalacionesController(GesvenDbContext contexto)
+    /// <summary>
+    /// Inicializa una nueva instancia del controlador de instalaciones.
+    /// </summary>
+    /// <param name="contexto">El contexto de base de datos.</param>
+    /// <param name="logger">El logger para registrar eventos.</param>
+    public InstalacionesController(GesvenDbContext contexto, ILogger<InstalacionesController> logger)
     {
         _contexto = contexto;
+        _logger = logger;
     }
 
     /// <summary>
     /// GET /api/instalaciones
-    /// Lista las instalaciones permitidas para el Usuario 1.
+    /// Lista las instalaciones permitidas para el usuario del sistema.
     /// </summary>
+    /// <returns>Lista de instalaciones accesibles para el usuario.</returns>
     [HttpGet]
+    [ProducesResponseType(typeof(RespuestaApi<List<InstalacionDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RespuestaApi<List<InstalacionDto>>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RespuestaApi<List<InstalacionDto>>>> ObtenerInstalaciones()
     {
         try
         {
-            // Obtener instalaciones a las que tiene acceso el usuario 1
+            var usuarioId = UsuarioSistemaId;
+            if (Request.Headers.TryGetValue("X-Gesven-UsuarioId", out var usuarioIdHeader) &&
+                int.TryParse(usuarioIdHeader.FirstOrDefault(), out var parsedUsuarioId) &&
+                parsedUsuarioId > 0)
+            {
+                usuarioId = parsedUsuarioId;
+            }
+
+            _logger.LogInformation("Obteniendo instalaciones para UsuarioId={UsuarioId} (header X-Gesven-UsuarioId={HeaderUsuarioId})", usuarioId, usuarioIdHeader.FirstOrDefault());
+
+            // Obtener instalaciones a las que tiene acceso el usuario del sistema.
             var instalaciones = await _contexto.AccesosInstalacion
-                .Where(a => a.UsuarioId == UsuarioActualId)
+                .Where(a => a.UsuarioId == usuarioId)
                 .Include(a => a.Instalacion)
                     .ThenInclude(i => i!.Sucursal)
                         .ThenInclude(s => s!.Empresa)
@@ -55,11 +75,12 @@ public class InstalacionesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new RespuestaApi<List<InstalacionDto>>
+            _logger.LogError(ex, "Error al obtener las instalaciones");
+            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<List<InstalacionDto>>
             {
                 Exito = false,
                 Mensaje = "Error al obtener las instalaciones",
-                Errores = new List<string> { ex.Message }
+                Errores = ["Ocurrió un error interno. Por favor, intente más tarde."]
             });
         }
     }
@@ -68,7 +89,12 @@ public class InstalacionesController : ControllerBase
     /// GET /api/instalaciones/{id}
     /// Obtiene una instalación por su ID.
     /// </summary>
+    /// <param name="id">El identificador de la instalación.</param>
+    /// <returns>Los datos de la instalación solicitada.</returns>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(RespuestaApi<InstalacionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RespuestaApi<InstalacionDto>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(RespuestaApi<InstalacionDto>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RespuestaApi<InstalacionDto>>> ObtenerInstalacion(int id)
     {
         try
@@ -88,7 +114,7 @@ public class InstalacionesController : ControllerBase
                 })
                 .FirstOrDefaultAsync();
 
-            if (instalacion == null)
+            if (instalacion is null)
             {
                 return NotFound(new RespuestaApi<InstalacionDto>
                 {
@@ -106,11 +132,12 @@ public class InstalacionesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new RespuestaApi<InstalacionDto>
+            _logger.LogError(ex, "Error al obtener la instalación con ID {InstalacionId}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<InstalacionDto>
             {
                 Exito = false,
                 Mensaje = "Error al obtener la instalación",
-                Errores = new List<string> { ex.Message }
+                Errores = ["Ocurrió un error interno. Por favor, intente más tarde."]
             });
         }
     }

@@ -41,7 +41,7 @@ export function Header() {
 
   const handleCambiarInstalacion = () => {
     limpiarInstalacion();
-    navigate('/tienda-inventario/selector-instalacion');
+    navigate('/selector-instalacion');
   };
 
   return (

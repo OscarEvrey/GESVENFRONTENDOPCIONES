@@ -3,6 +3,7 @@ import type { Column } from '@tanstack/react-table';
 export type TipoInstalacion = 'almacen' | 'oficinas';
 
 export interface Instalacion {
+  instalacionId: number;
   id: string;
   nombre: string;
   tipo: TipoInstalacion;

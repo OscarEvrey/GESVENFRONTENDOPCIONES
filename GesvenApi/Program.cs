@@ -3,27 +3,18 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Obtener cadena de conexión desde configuración
-var connectionString = builder.Configuration.GetConnectionString("GesvenDb") 
-    ?? "Data Source=gesven_dev.db";
+// Obtener cadena de conexión desde configuración.
+var connectionString = builder.Configuration.GetConnectionString("GesvenDb");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "Falta la cadena de conexión 'ConnectionStrings:GesvenDb'. Configure appsettings o use la variable de entorno 'ConnectionStrings__GesvenDb'.");
+}
 
-// Configurar Entity Framework Core (SQLite por defecto, SQL Server si aplica)
+// Configurar Entity Framework Core (SQL Server)
 builder.Services.AddDbContext<GesvenDbContext>(options =>
 {
-    var esSqlServer =
-        connectionString.Contains("Initial Catalog=", StringComparison.OrdinalIgnoreCase) ||
-        connectionString.Contains("TrustServerCertificate", StringComparison.OrdinalIgnoreCase) ||
-        connectionString.Contains("MultipleActiveResultSets", StringComparison.OrdinalIgnoreCase) ||
-        connectionString.Contains("Encrypt=", StringComparison.OrdinalIgnoreCase);
-
-    if (esSqlServer)
-    {
-        options.UseSqlServer(connectionString);
-    }
-    else
-    {
-        options.UseSqlite(connectionString);
-    }
+    options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure());
 });
 
 // Agregar controladores
@@ -53,12 +44,12 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<GesvenDbContext>();
-    // Solo crear automáticamente para SQLite (dev local). Para SQL Server real,
-    // se asume que la BD ya existe y está administrada fuera de la app.
-    if (context.Database.IsSqlite())
-    {
-        context.Database.EnsureCreated();
-    }
+
+    app.Logger.LogInformation(
+        "Database provider: {Provider}; DataSource: {DataSource}; Database: {Database}",
+        context.Database.ProviderName,
+        context.Database.GetDbConnection().DataSource,
+        context.Database.GetDbConnection().Database);
 }
 
 // Configure the HTTP request pipeline.

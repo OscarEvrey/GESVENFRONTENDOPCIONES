@@ -15,30 +15,11 @@ import {
   useContextoInstalacion,
 } from '../../context/ContextoInstalacion';
 
-// ============ SIMULACIÓN DE PERMISOS DE USUARIO ============
-// En un escenario real, esto vendría de un contexto de autenticación o API
-// Para simular, el Usuario 1 tiene acceso a las 4 instalaciones
-// Pero podemos simular que algunas están bloqueadas basado en datos ficticios
-const instalacionesConAcceso = [
-  'almacen-scc-mty',
-  'oficinas-scc-mty',
-  'almacen-vaxsa-mty',
-  'oficinas-vaxsa-mty',
-]; // Usuario 1 tiene acceso a todas
-// Para demostración, si quisiéramos bloquear alguna, la quitaríamos de este array
-
 export function SelectorInstalacionPage() {
-  const { instalaciones, seleccionarInstalacion } = useContextoInstalacion();
+  const { instalaciones, cargandoInstalaciones, errorInstalaciones, seleccionarInstalacion } = useContextoInstalacion();
   const navigate = useNavigate();
 
-  const tieneAcceso = (instalacionId: string) => {
-    return instalacionesConAcceso.includes(instalacionId);
-  };
-
   const handleSeleccionar = (instalacion: Instalacion) => {
-    if (!tieneAcceso(instalacion.id)) {
-      return; // No permitir selección si no tiene acceso
-    }
     seleccionarInstalacion(instalacion);
     navigate('/tienda-inventario/inventario-actual');
   };
@@ -81,8 +62,21 @@ export function SelectorInstalacionPage() {
 
         {/* Cuadrícula de Instalaciones */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {instalaciones.map((instalacion) => {
-            const conAcceso = tieneAcceso(instalacion.id);
+          {cargandoInstalaciones ? (
+            <div className="col-span-full text-center text-sm text-muted-foreground">
+              Cargando instalaciones...
+            </div>
+          ) : errorInstalaciones ? (
+            <div className="col-span-full text-center text-sm text-destructive">
+              {errorInstalaciones}
+            </div>
+          ) : instalaciones.length === 0 ? (
+            <div className="col-span-full text-center text-sm text-muted-foreground">
+              No hay instalaciones disponibles.
+            </div>
+          ) : (
+            instalaciones.map((instalacion) => {
+              const conAcceso = true; // La API ya filtra por permisos del usuario
             return (
               <Card
                 key={instalacion.id}
@@ -139,7 +133,8 @@ export function SelectorInstalacionPage() {
                 </CardContent>
               </Card>
             );
-          })}
+          })
+          )}
         </div>
 
         {/* Información adicional */}
@@ -149,7 +144,7 @@ export function SelectorInstalacionPage() {
             cualquier momento desde el encabezado de la aplicación.
           </p>
           <p className="text-xs text-muted-foreground mt-2">
-            Las instalaciones con candado requieren asignación de acceso en "Administración de Accesos"
+            Las instalaciones se obtienen desde el backend según permisos.
           </p>
         </div>
       </div>
