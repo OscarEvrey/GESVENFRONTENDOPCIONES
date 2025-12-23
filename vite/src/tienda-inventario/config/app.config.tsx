@@ -19,86 +19,109 @@ import {
 import { MenuConfig } from './types';
 
 export const MENU_SIDEBAR: MenuConfig = [
-  // ============ ÍTEMS PRINCIPALES DE NIVEL SUPERIOR ============
-  {
-    title: 'Seleccionar Instalación',
-    icon: Building2,
-    path: '/selector-instalacion',
-  },
+  // ============ GENERAL ============
+  { heading: 'General' },
   {
     title: 'Dashboard',
     icon: LayoutDashboard,
     path: '/tienda-inventario/dashboard',
   },
   {
+    title: 'Seleccionar Instalación',
+    icon: Building2,
+    path: '/selector-instalacion',
+  },
+
+  // ============ OPERACIÓN E INVENTARIOS ============
+  { heading: 'Operación e Inventarios' },
+  {
     title: 'Inventario Actual',
     icon: Package,
     path: '/tienda-inventario/inventario-actual',
   },
   {
-    title: 'Transferencias',
-    icon: ArrowLeftRight,
-    path: '/tienda-inventario/transferencias',
+    title: 'Gestión de Almacén',
+    icon: Truck,
+    children: [
+      {
+        title: 'Recepción',
+        path: '/tienda-inventario/recepcion-mercancia',
+      },
+      {
+        title: 'Transferencias',
+        path: '/tienda-inventario/transferencias',
+      },
+      {
+        title: 'Ajustes',
+        path: '/tienda-inventario/ajustes-inventario',
+      },
+      {
+        title: 'Kardex',
+        path: '/tienda-inventario/kardex-movimientos',
+      },
+    ],
   },
+
+  // ============ COMPRAS ============
+  { heading: 'Compras' },
   {
-    title: 'Ajustes de Inventario',
-    icon: ClipboardEdit,
-    path: '/tienda-inventario/ajustes-inventario',
-  },
-  {
-    title: 'Nueva Orden de Compra',
+    title: 'Nueva Orden (OC)',
     icon: ShoppingCart,
     path: '/tienda-inventario/nueva-orden-compra',
   },
   {
-    title: 'Aprobación de Compras',
+    title: 'Aprobaciones',
     icon: ClipboardCheck,
     path: '/tienda-inventario/aprobacion-compras',
   },
+
+  // ============ VENTAS Y FINANZAS ============
+  { heading: 'Ventas y Finanzas' },
   {
-    title: 'Recepción de Mercancía',
-    icon: Truck,
-    path: '/tienda-inventario/recepcion-mercancia',
-  },
-  {
-    title: 'Kardex de Movimientos',
-    icon: ClipboardList,
-    path: '/tienda-inventario/kardex-movimientos',
-  },
-  {
-    title: 'Registro de Ventas',
+    title: 'Registro Ventas',
     icon: ShoppingBag,
     path: '/tienda-inventario/registro-ventas',
   },
   {
-    title: 'Carga de Facturas',
+    title: 'Facturación (Carga Facturas)',
     icon: CloudUpload,
     path: '/tienda-inventario/carga-facturas',
   },
   {
-    title: 'Gestión de Pagos',
+    title: 'Gestión Pagos',
     icon: Banknote,
     path: '/tienda-inventario/gestion-pagos',
   },
+
+  // ============ ADMINISTRACIÓN ============
+  { heading: 'Administración' },
   {
-    title: 'Cancelaciones y Auditoría',
-    icon: Ban,
-    path: '/tienda-inventario/monitor-cancelaciones',
-  },
-  {
-    title: 'Catálogo de Clientes y Proveedores',
-    icon: Users,
-    path: '/tienda-inventario/clientes-proveedores',
-  },
-  {
-    title: 'Catálogo de Artículos',
+    title: 'Catálogos',
     icon: Tag,
-    path: '/tienda-inventario/articulos',
+    children: [
+      {
+        title: 'Artículos',
+        path: '/tienda-inventario/articulos',
+      },
+      {
+        title: 'Clientes y Proveedores',
+        path: '/tienda-inventario/clientes-proveedores',
+      },
+    ],
   },
   {
-    title: 'Administración de Accesos',
+    title: 'Seguridad',
     icon: Key,
-    path: '/tienda-inventario/gestion-accesos',
+    children: [
+      {
+        title: 'Administración de Accesos',
+        path: '/tienda-inventario/gestion-accesos',
+      },
+      {
+        title: 'Monitor de Auditoría',
+        path: '/tienda-inventario/monitor-cancelaciones',
+      },
+    ],
   },
   // Nota: La "Librería del Template" ha sido eliminada del sidebar.
   // El acceso a estas páginas solo es posible vía URL directa en /libreria-gesven/...

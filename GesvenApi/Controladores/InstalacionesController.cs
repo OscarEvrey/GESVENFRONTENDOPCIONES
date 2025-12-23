@@ -39,9 +39,19 @@ public class InstalacionesController : ControllerBase
     {
         try
         {
+            var usuarioId = UsuarioSistemaId;
+            if (Request.Headers.TryGetValue("X-Gesven-UsuarioId", out var usuarioIdHeader) &&
+                int.TryParse(usuarioIdHeader.FirstOrDefault(), out var parsedUsuarioId) &&
+                parsedUsuarioId > 0)
+            {
+                usuarioId = parsedUsuarioId;
+            }
+
+            _logger.LogInformation("Obteniendo instalaciones para UsuarioId={UsuarioId} (header X-Gesven-UsuarioId={HeaderUsuarioId})", usuarioId, usuarioIdHeader.FirstOrDefault());
+
             // Obtener instalaciones a las que tiene acceso el usuario del sistema.
             var instalaciones = await _contexto.AccesosInstalacion
-                .Where(a => a.UsuarioId == UsuarioSistemaId)
+                .Where(a => a.UsuarioId == usuarioId)
                 .Include(a => a.Instalacion)
                     .ThenInclude(i => i!.Sucursal)
                         .ThenInclude(s => s!.Empresa)
@@ -65,7 +75,7 @@ public class InstalacionesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al obtener las instalaciones para el usuario {UsuarioId}", UsuarioSistemaId);
+            _logger.LogError(ex, "Error al obtener las instalaciones");
             return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<List<InstalacionDto>>
             {
                 Exito = false,

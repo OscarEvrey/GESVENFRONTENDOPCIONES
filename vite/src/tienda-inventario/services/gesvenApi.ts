@@ -2,7 +2,21 @@
  * Configuración de la API de Gesven
  * El puerto por defecto 5022 coincide con launchSettings.json del backend
  */
+import { getCurrentUserId } from '@/lib/gesven-session';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5022';
+
+function buildHeaders(extra?: Record<string, string>): HeadersInit {
+  const userId = getCurrentUserId();
+  const base: Record<string, string> = {
+    ...(userId !== null ? { 'X-Gesven-UsuarioId': String(userId) } : {}),
+  };
+
+  return {
+    ...base,
+    ...(extra ?? {}),
+  };
+}
 
 /**
  * Tipos de respuesta de la API
@@ -116,7 +130,9 @@ export const gesvenApi = {
    */
   async obtenerInstalaciones(): Promise<InstalacionApiDto[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/instalaciones`);
+      const response = await fetch(`${API_BASE_URL}/api/instalaciones`, {
+        headers: buildHeaders(),
+      });
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
@@ -136,7 +152,9 @@ export const gesvenApi = {
    */
   async obtenerInventario(instalacionId: number): Promise<ProductoInventarioApiDto[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/inventario/${instalacionId}`);
+      const response = await fetch(`${API_BASE_URL}/api/inventario/${instalacionId}`, {
+        headers: buildHeaders(),
+      });
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
@@ -156,7 +174,12 @@ export const gesvenApi = {
    */
   async obtenerProductosParaCompra(instalacionId: number): Promise<ProductoSimpleApiDto[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/inventario/${instalacionId}/productos`);
+      const response = await fetch(
+        `${API_BASE_URL}/api/inventario/${instalacionId}/productos`,
+        {
+          headers: buildHeaders(),
+        },
+      );
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
@@ -176,7 +199,9 @@ export const gesvenApi = {
    */
   async obtenerProveedores(): Promise<ProveedorApiDto[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/compras/proveedores`);
+      const response = await fetch(`${API_BASE_URL}/api/compras/proveedores`, {
+        headers: buildHeaders(),
+      });
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
@@ -199,7 +224,7 @@ export const gesvenApi = {
       const response = await fetch(`${API_BASE_URL}/api/compras`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          ...buildHeaders({ 'Content-Type': 'application/json' }),
         },
         body: JSON.stringify(orden),
       });
@@ -229,7 +254,9 @@ export const gesvenApi = {
       const url = instalacionId
         ? `${API_BASE_URL}/api/compras?instalacionId=${instalacionId}`
         : `${API_BASE_URL}/api/compras`;
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: buildHeaders(),
+      });
       if (!response.ok) {
         throw new Error(`Error HTTP: ${response.status}`);
       }
