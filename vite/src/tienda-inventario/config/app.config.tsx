@@ -1,11 +1,14 @@
 import {
+  ArrowLeftRight,
   Ban,
   Banknote,
   Building2,
   ClipboardCheck,
+  ClipboardEdit,
   ClipboardList,
   CloudUpload,
   Key,
+  LayoutDashboard,
   Package,
   ShoppingBag,
   ShoppingCart,
@@ -23,9 +26,24 @@ export const MENU_SIDEBAR: MenuConfig = [
     path: '/selector-instalacion',
   },
   {
+    title: 'Dashboard',
+    icon: LayoutDashboard,
+    path: '/tienda-inventario/dashboard',
+  },
+  {
     title: 'Inventario Actual',
     icon: Package,
     path: '/tienda-inventario/inventario-actual',
+  },
+  {
+    title: 'Transferencias',
+    icon: ArrowLeftRight,
+    path: '/tienda-inventario/transferencias',
+  },
+  {
+    title: 'Ajustes de Inventario',
+    icon: ClipboardEdit,
+    path: '/tienda-inventario/ajustes-inventario',
   },
   {
     title: 'Nueva Orden de Compra',

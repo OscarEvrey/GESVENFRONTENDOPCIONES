@@ -302,6 +302,7 @@ export function RegistroVentasPage() {
   const [descuento, setDescuento] = useState<number>(0);
   const [lineasVenta, setLineasVenta] = useState<LineaVenta[]>([]);
   const [mensajeExito, setMensajeExito] = useState<string>('');
+  const [errorStock, setErrorStock] = useState<string>('');
   const [ventaId, setVentaId] = useState<number>(1);
 
   // Obtener productos con stock > 0 según la instalación
@@ -329,9 +330,25 @@ export function RegistroVentasPage() {
     return lineasVenta.reduce((sum, linea) => sum + linea.subtotal, 0);
   }, [lineasVenta]);
 
+  // Calcular stock disponible considerando líneas ya agregadas
+  const stockDisponibleProducto = useMemo(() => {
+    if (!productoSeleccionado) return 0;
+    const cantidadYaEnVenta = lineasVenta
+      .filter((l) => l.productoId === productoId)
+      .reduce((sum, l) => sum + l.cantidad, 0);
+    return productoSeleccionado.stockActual - cantidadYaEnVenta;
+  }, [productoSeleccionado, productoId, lineasVenta]);
+
+  // Validar si la cantidad excede el stock (para bloquear guardado)
+  const cantidadExcedeStock = useMemo(() => {
+    if (!productoSeleccionado) return false;
+    return cantidad > stockDisponibleProducto;
+  }, [productoSeleccionado, cantidad, stockDisponibleProducto]);
+
   // Cuando cambia el producto, actualizar el precio de venta
   const handleProductoChange = (id: string) => {
     setProductoId(id);
+    setErrorStock('');
     const producto = productosDisponibles.find((p) => p.id === id);
     if (producto) {
       setPrecioVenta(producto.precioVenta);
@@ -342,21 +359,26 @@ export function RegistroVentasPage() {
     setDescuento(0);
   };
 
+  // Manejar cambio de cantidad con validación de stock
+  const handleCantidadChange = (nuevaCantidad: number) => {
+    setCantidad(nuevaCantidad);
+    if (productoSeleccionado && nuevaCantidad > stockDisponibleProducto) {
+      setErrorStock(`⚠️ BLOQUEO: La cantidad (${nuevaCantidad}) excede el stock disponible (${stockDisponibleProducto}). No se puede agregar a la venta.`);
+    } else {
+      setErrorStock('');
+    }
+  };
+
   // Agregar línea de venta
   const agregarLinea = () => {
+    // BLOQUEO FÍSICO: No permitir agregar si excede stock
     if (!productoSeleccionado || cantidad <= 0 || precioVenta < 1) {
       return;
     }
 
-    // Verificar que no exceda el stock
-    const cantidadYaEnVenta = lineasVenta
-      .filter((l) => l.productoId === productoId)
-      .reduce((sum, l) => sum + l.cantidad, 0);
-
-    if (cantidadYaEnVenta + cantidad > productoSeleccionado.stockActual) {
-      alert(
-        `Stock insuficiente. Disponible: ${productoSeleccionado.stockActual - cantidadYaEnVenta}`,
-      );
+    // BLOQUEO FÍSICO: Verificar que no exceda el stock
+    if (cantidad > stockDisponibleProducto) {
+      setErrorStock(`⚠️ BLOQUEO: La cantidad (${cantidad}) excede el stock disponible (${stockDisponibleProducto}). No se puede agregar a la venta.`);
       return;
     }
 
@@ -379,6 +401,7 @@ export function RegistroVentasPage() {
     setCantidad(1);
     setPrecioVenta(0);
     setDescuento(0);
+    setErrorStock('');
   };
 
   // Eliminar línea
@@ -630,7 +653,7 @@ export function RegistroVentasPage() {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setCantidad((prev) => Math.max(1, prev - 1))}
+                      onClick={() => handleCantidadChange(Math.max(1, cantidad - 1))}
                       disabled={cantidad <= 1}
                     >
                       <Minus className="size-4" />
@@ -639,22 +662,27 @@ export function RegistroVentasPage() {
                       type="number"
                       min={1}
                       value={cantidad}
-                      onChange={(e) => setCantidad(parseInt(e.target.value) || 1)}
-                      className="text-center"
+                      onChange={(e) => handleCantidadChange(parseInt(e.target.value) || 1)}
+                      className={`text-center ${cantidadExcedeStock ? 'border-red-500' : ''}`}
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setCantidad((prev) => prev + 1)}
+                      onClick={() => handleCantidadChange(cantidad + 1)}
                       disabled={
                         productoSeleccionado
-                          ? cantidad >= productoSeleccionado.stockActual
+                          ? cantidad >= stockDisponibleProducto
                           : true
                       }
                     >
                       <Plus className="size-4" />
                     </Button>
                   </div>
+                  {productoSeleccionado && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Disponible: {stockDisponibleProducto} {stockDisponibleProducto < productoSeleccionado.stockActual && `(${productoSeleccionado.stockActual} en stock - ${productoSeleccionado.stockActual - stockDisponibleProducto} ya en venta)`}
+                    </p>
+                  )}
                 </div>
 
                 {/* Precio Venta */}
@@ -686,11 +714,18 @@ export function RegistroVentasPage() {
                 </div>
               </div>
 
+              {/* Error de stock */}
+              {errorStock && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-700 font-medium">{errorStock}</p>
+                </div>
+              )}
+
               <div className="mt-4 flex justify-end">
                 <Button
                   onClick={agregarLinea}
                   disabled={
-                    !productoId || cantidad <= 0 || precioVenta < 1
+                    !productoId || cantidad <= 0 || precioVenta < 1 || cantidadExcedeStock
                   }
                 >
                   <Plus className="size-4 me-2" />

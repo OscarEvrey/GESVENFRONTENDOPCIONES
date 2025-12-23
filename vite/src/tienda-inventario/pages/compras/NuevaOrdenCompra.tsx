@@ -88,6 +88,9 @@ export function NuevaOrdenCompraPage() {
     },
   });
 
+  // Estado para alerta de costo elevado
+  const [alertaCosto, setAlertaCosto] = useState<string>('');
+
   // ID de la orden (referencia local)
   const [idOrden, setIdOrden] = useState(() => generarIdOrden());
 
@@ -117,6 +120,28 @@ export function NuevaOrdenCompraPage() {
     return lineas.reduce((acc, linea) => acc + linea.subtotal, 0);
   }, [lineas]);
 
+  // Validar si el costo excede el 15% del costo promedio histórico
+  const validarCostoContraPromedio = (productoId: string, costoCapturado: number): { excede: boolean; mensaje: string; porcentajeExceso: number } => {
+    const producto = productosParaCompra.find((p) => String(p.productoId) === productoId);
+    if (!producto || !producto.costoSugerido) {
+      return { excede: false, mensaje: '', porcentajeExceso: 0 };
+    }
+    
+    const costoPromedio = Number(producto.costoSugerido);
+    const limiteSuperior = costoPromedio * 1.15; // 15% arriba del promedio
+    
+    if (costoCapturado > limiteSuperior) {
+      const porcentajeExceso = ((costoCapturado - costoPromedio) / costoPromedio) * 100;
+      return {
+        excede: true,
+        mensaje: `⚠️ ALERTA: El costo capturado ($${costoCapturado.toFixed(2)}) es ${porcentajeExceso.toFixed(1)}% superior al costo promedio histórico ($${costoPromedio.toFixed(2)}). Por favor verifique el precio con el proveedor.`,
+        porcentajeExceso,
+      };
+    }
+    
+    return { excede: false, mensaje: '', porcentajeExceso: 0 };
+  };
+
   // Manejar selección de artículo
   const handleArticuloChange = (articuloId: string) => {
     const producto = productosParaCompra.find(
@@ -126,6 +151,21 @@ export function NuevaOrdenCompraPage() {
 
     form.setValue('articuloId', articuloId);
     form.setValue('costoUnitario', Number(producto.costoSugerido));
+    setAlertaCosto(''); // Limpiar alerta al cambiar artículo
+  };
+
+  // Manejar cambio de costo unitario con validación
+  const handleCostoChange = (costo: number) => {
+    form.setValue('costoUnitario', costo);
+    const articuloId = form.getValues('articuloId');
+    if (articuloId) {
+      const validacion = validarCostoContraPromedio(articuloId, costo);
+      if (validacion.excede) {
+        setAlertaCosto(validacion.mensaje);
+      } else {
+        setAlertaCosto('');
+      }
+    }
   };
 
   // Agregar línea
@@ -134,6 +174,16 @@ export function NuevaOrdenCompraPage() {
       (p) => String(p.productoId) === datos.articuloId,
     );
     if (!producto) return;
+
+    // Validar costo contra promedio histórico (alerta visual pero no bloquea)
+    const validacion = validarCostoContraPromedio(datos.articuloId, datos.costoUnitario);
+    if (validacion.excede) {
+      // Mostrar toast de advertencia pero permitir continuar
+      toast.warning(`Costo ${validacion.porcentajeExceso.toFixed(1)}% arriba del promedio`, {
+        description: `El artículo "${producto.nombre}" tiene un costo capturado significativamente superior al histórico.`,
+        duration: 5000,
+      });
+    }
 
     const nuevaLinea: LineaOrden = {
       id: `linea-${Date.now()}`,
@@ -145,6 +195,7 @@ export function NuevaOrdenCompraPage() {
     };
 
     setLineas((prev) => [...prev, nuevaLinea]);
+    setAlertaCosto('');
     form.reset();
   };
 
@@ -399,10 +450,13 @@ export function NuevaOrdenCompraPage() {
                           type="number"
                           step="0.01"
                           min="0.01"
+                          className={alertaCosto ? 'border-amber-500' : ''}
                           {...field}
-                          onChange={(e) =>
-                            field.onChange(parseFloat(e.target.value) || 0)
-                          }
+                          onChange={(e) => {
+                            const valor = parseFloat(e.target.value) || 0;
+                            field.onChange(valor);
+                            handleCostoChange(valor);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -417,6 +471,13 @@ export function NuevaOrdenCompraPage() {
                 </Button>
               </form>
             </Form>
+
+            {/* Alerta de costo elevado */}
+            {alertaCosto && (
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-300 rounded-lg">
+                <p className="text-sm text-amber-800 font-medium">{alertaCosto}</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

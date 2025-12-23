@@ -40,6 +40,10 @@ import { SelectorInstalacionPage } from './pages/contexto/SelectorInstalacion';
 import { InventarioActualPage } from './pages/inventario/InventarioActual';
 import { RecepcionMercanciaPage } from './pages/inventario/RecepcionMercancia';
 import { KardexMovimientosPage } from './pages/inventario/KardexMovimientos';
+import { TransferenciasPage } from './pages/inventario/Transferencias';
+import { AjustesInventarioPage } from './pages/inventario/AjustesInventario';
+// Dashboard
+import { DashboardPage } from './pages/tablero/Dashboard';
 // Páginas de Compras
 import { NuevaOrdenCompraPage } from './pages/compras/NuevaOrdenCompra';
 import { AprobacionComprasPage } from './pages/compras/AprobacionCompras';
@@ -91,6 +95,8 @@ export default function TiendaInventarioModule({ routeType = 'main' }: TiendaInv
                 <Route path="inventario-actual" element={<InventarioActualPage />} />
                 <Route path="recepcion-mercancia" element={<RecepcionMercanciaPage />} />
                 <Route path="kardex-movimientos" element={<KardexMovimientosPage />} />
+                <Route path="transferencias" element={<TransferenciasPage />} />
+                <Route path="ajustes-inventario" element={<AjustesInventarioPage />} />
                 <Route path="nueva-orden-compra" element={<NuevaOrdenCompraPage />} />
                 <Route path="aprobacion-compras" element={<AprobacionComprasPage />} />
                 <Route path="registro-ventas" element={<RegistroVentasPage />} />
@@ -100,7 +106,9 @@ export default function TiendaInventarioModule({ routeType = 'main' }: TiendaInv
                 <Route path="clientes-proveedores" element={<ClientesProveedoresPage />} />
                 <Route path="articulos" element={<ArticulosPage />} />
                 <Route path="gestion-accesos" element={<GestionAccesosPage />} />
-                {/* Ruta de tablero */}
+                {/* Dashboard con indicadores clave */}
+                <Route path="dashboard" element={<DashboardPage />} />
+                {/* Ruta de tablero (original del template) */}
                 <Route path="tablero" element={<TableroPage />} />
                 <Route path="dark-sidebar" element={<TableroPage />} />
                 {/* Rutas existentes */}
