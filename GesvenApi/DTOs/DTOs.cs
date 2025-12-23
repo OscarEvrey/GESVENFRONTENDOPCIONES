@@ -35,10 +35,17 @@ public class ProductoInventarioDto
 /// </summary>
 public class CrearOrdenCompraDto
 {
+    /// <summary>Identificador de la instalación destino.</summary>
     public int InstalacionId { get; set; }
+
+    /// <summary>Identificador del proveedor.</summary>
     public int ProveedorId { get; set; }
+
+    /// <summary>Comentarios opcionales de la orden.</summary>
     public string? Comentarios { get; set; }
-    public List<LineaOrdenCompraDto> Lineas { get; set; } = new();
+
+    /// <summary>Líneas de productos de la orden.</summary>
+    public List<LineaOrdenCompraDto> Lineas { get; set; } = [];
 }
 
 /// <summary>
@@ -56,16 +63,35 @@ public class LineaOrdenCompraDto
 /// </summary>
 public class OrdenCompraRespuestaDto
 {
+    /// <summary>Identificador de la orden de compra.</summary>
     public int OrdenCompraId { get; set; }
+
+    /// <summary>Identificador de la instalación.</summary>
     public int InstalacionId { get; set; }
+
+    /// <summary>Nombre de la instalación.</summary>
     public string InstalacionNombre { get; set; } = string.Empty;
+
+    /// <summary>Identificador del proveedor.</summary>
     public int ProveedorId { get; set; }
+
+    /// <summary>Nombre del proveedor.</summary>
     public string ProveedorNombre { get; set; } = string.Empty;
+
+    /// <summary>Estatus actual de la orden.</summary>
     public string Estatus { get; set; } = string.Empty;
+
+    /// <summary>Monto total de la orden.</summary>
     public decimal MontoTotal { get; set; }
+
+    /// <summary>Comentarios de la orden.</summary>
     public string? Comentarios { get; set; }
+
+    /// <summary>Fecha de creación de la orden.</summary>
     public DateTime CreadoEn { get; set; }
-    public List<DetalleOrdenCompraRespuestaDto> Detalles { get; set; } = new();
+
+    /// <summary>Detalles de los productos de la orden.</summary>
+    public List<DetalleOrdenCompraRespuestaDto> Detalles { get; set; } = [];
 }
 
 /// <summary>
@@ -84,12 +110,20 @@ public class DetalleOrdenCompraRespuestaDto
 /// <summary>
 /// Respuesta estándar de la API.
 /// </summary>
+/// <typeparam name="T">El tipo de datos contenidos en la respuesta.</typeparam>
 public class RespuestaApi<T>
 {
+    /// <summary>Indica si la operación fue exitosa.</summary>
     public bool Exito { get; set; }
+
+    /// <summary>Mensaje descriptivo del resultado.</summary>
     public string Mensaje { get; set; } = string.Empty;
+
+    /// <summary>Datos de la respuesta.</summary>
     public T? Datos { get; set; }
-    public List<string> Errores { get; set; } = new();
+
+    /// <summary>Lista de errores si la operación falló.</summary>
+    public List<string> Errores { get; set; } = [];
 }
 
 /// <summary>

@@ -7,24 +7,36 @@ using static GesvenApi.ConstantesGesven;
 namespace GesvenApi.Controladores;
 
 /// <summary>
-/// Controlador para gestionar el inventario.
+/// Controlador para gestionar el inventario de productos.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class InventarioController : ControllerBase
 {
     private readonly GesvenDbContext _contexto;
+    private readonly ILogger<InventarioController> _logger;
 
-    public InventarioController(GesvenDbContext contexto)
+    /// <summary>
+    /// Inicializa una nueva instancia del controlador de inventario.
+    /// </summary>
+    /// <param name="contexto">El contexto de base de datos.</param>
+    /// <param name="logger">El logger para registrar eventos.</param>
+    public InventarioController(GesvenDbContext contexto, ILogger<InventarioController> logger)
     {
         _contexto = contexto;
+        _logger = logger;
     }
 
     /// <summary>
     /// GET /api/inventario/{instalacionId}
     /// Devuelve los productos filtrados por el contexto de la instalación.
     /// </summary>
+    /// <param name="instalacionId">El identificador de la instalación.</param>
+    /// <returns>Lista de productos con su stock actual.</returns>
     [HttpGet("{instalacionId}")]
+    [ProducesResponseType(typeof(RespuestaApi<List<ProductoInventarioDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RespuestaApi<List<ProductoInventarioDto>>), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(RespuestaApi<List<ProductoInventarioDto>>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RespuestaApi<List<ProductoInventarioDto>>>> ObtenerInventario(int instalacionId)
     {
         try
@@ -40,7 +52,7 @@ public class InventarioController : ControllerBase
                 });
             }
 
-            // Obtener productos de la instalación con su stock actual (basado en el último movimiento)
+            // Obtener productos de la instalación con su stock actual (basado en el último movimiento).
             var productos = await _contexto.Productos
                 .Where(p => p.InstalacionId == instalacionId)
                 .Include(p => p.Unidad)
@@ -48,9 +60,9 @@ public class InventarioController : ControllerBase
                 .Select(p => new ProductoInventarioDto
                 {
                     ProductoId = p.ProductoId,
-                    Codigo = p.Codigo ?? "",
+                    Codigo = p.Codigo ?? string.Empty,
                     Nombre = p.Nombre,
-                    Categoria = p.Categoria ?? "",
+                    Categoria = p.Categoria ?? string.Empty,
                     Unidad = p.Unidad != null ? p.Unidad.Nombre : "Pieza",
                     StockActual = p.Movimientos.Any() 
                         ? p.Movimientos.OrderByDescending(m => m.MovimientoId).First().SaldoFinal 
@@ -75,11 +87,12 @@ public class InventarioController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new RespuestaApi<List<ProductoInventarioDto>>
+            _logger.LogError(ex, "Error al obtener inventario para la instalación {InstalacionId}", instalacionId);
+            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<List<ProductoInventarioDto>>
             {
                 Exito = false,
                 Mensaje = "Error al obtener el inventario",
-                Errores = new List<string> { ex.Message }
+                Errores = ["Ocurrió un error interno. Por favor, intente más tarde."]
             });
         }
     }
@@ -88,7 +101,11 @@ public class InventarioController : ControllerBase
     /// GET /api/inventario/{instalacionId}/productos
     /// Devuelve lista simplificada de productos para selectores.
     /// </summary>
+    /// <param name="instalacionId">El identificador de la instalación.</param>
+    /// <returns>Lista simplificada de productos.</returns>
     [HttpGet("{instalacionId}/productos")]
+    [ProducesResponseType(typeof(RespuestaApi<List<ProductoSimpleDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RespuestaApi<List<ProductoSimpleDto>>), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<RespuestaApi<List<ProductoSimpleDto>>>> ObtenerProductosSimples(int instalacionId)
     {
         try
@@ -112,11 +129,12 @@ public class InventarioController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new RespuestaApi<List<ProductoSimpleDto>>
+            _logger.LogError(ex, "Error al obtener productos simples para la instalación {InstalacionId}", instalacionId);
+            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<List<ProductoSimpleDto>>
             {
                 Exito = false,
                 Mensaje = "Error al obtener productos",
-                Errores = new List<string> { ex.Message }
+                Errores = ["Ocurrió un error interno. Por favor, intente más tarde."]
             });
         }
     }
