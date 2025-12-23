@@ -5,7 +5,7 @@ export function LayoutProtegido() {
   const { instalacionActiva } = useContextoInstalacion();
 
   if (!instalacionActiva) {
-    return <Navigate to="/tienda-inventario/selector-instalacion" replace />;
+    return <Navigate to="/selector-instalacion" replace />;
   }
 
   return <Outlet />;
