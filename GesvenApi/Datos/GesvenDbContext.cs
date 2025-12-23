@@ -4,6 +4,7 @@ using GesvenApi.Modelos.Compras;
 using GesvenApi.Modelos.Inventario;
 using GesvenApi.Modelos.Organizacion;
 using GesvenApi.Modelos.Seguridad;
+using GesvenApi.Modelos.Ventas;
 using Microsoft.EntityFrameworkCore;
 using static GesvenApi.ConstantesGesven;
 
@@ -36,11 +37,19 @@ public class GesvenDbContext : DbContext
     public DbSet<UnidadMedida> UnidadesMedida { get; set; }
     public DbSet<Producto> Productos { get; set; }
     public DbSet<Movimiento> Movimientos { get; set; }
+    public DbSet<Transferencia> Transferencias { get; set; }
+    public DbSet<TransferenciaDetalle> TransferenciasDetalle { get; set; }
+    public DbSet<AjusteInventario> AjustesInventario { get; set; }
 
     // Tablas de Compras
     public DbSet<Proveedor> Proveedores { get; set; }
     public DbSet<OrdenCompra> OrdenesCompra { get; set; }
     public DbSet<OrdenCompraDetalle> OrdenesCompraDetalle { get; set; }
+
+    // Tablas de Ventas
+    public DbSet<Cliente> Clientes { get; set; }
+    public DbSet<Venta> Ventas { get; set; }
+    public DbSet<VentaDetalle> VentasDetalle { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -223,6 +232,114 @@ public class GesvenDbContext : DbContext
                   .HasForeignKey(e => e.ProductoId);
         });
 
+        // Configuración de Transferencia
+        modelBuilder.Entity<Transferencia>(entity =>
+        {
+            entity.ToTable("Transferencia", "Inv");
+            entity.HasKey(e => e.TransferenciaId);
+            entity.Property(e => e.Folio).HasMaxLength(50).IsRequired();
+            entity.HasIndex(e => e.Folio).IsUnique();
+            entity.Property(e => e.Estatus).HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Comentarios).HasMaxLength(500);
+            entity.HasOne(e => e.InstalacionOrigen)
+                  .WithMany()
+                  .HasForeignKey(e => e.InstalacionOrigenId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(e => e.InstalacionDestino)
+                  .WithMany()
+                  .HasForeignKey(e => e.InstalacionDestinoId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configuración de TransferenciaDetalle
+        modelBuilder.Entity<TransferenciaDetalle>(entity =>
+        {
+            entity.ToTable("TransferenciaDetalle", "Inv");
+            entity.HasKey(e => e.DetalleId);
+            entity.Property(e => e.CantidadEnviada).HasPrecision(18, 4);
+            entity.Property(e => e.CantidadRecibida).HasPrecision(18, 4);
+            entity.HasOne(e => e.Transferencia)
+                  .WithMany(e => e.Detalles)
+                  .HasForeignKey(e => e.TransferenciaId);
+            entity.HasOne(e => e.Producto)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProductoId);
+        });
+
+        // Configuración de AjusteInventario
+        modelBuilder.Entity<AjusteInventario>(entity =>
+        {
+            entity.ToTable("AjusteInventario", "Inv");
+            entity.HasKey(e => e.AjusteId);
+            entity.Property(e => e.TipoAjuste).IsRequired();
+            entity.Property(e => e.Cantidad).HasPrecision(18, 4).IsRequired();
+            entity.Property(e => e.StockAnterior).HasPrecision(18, 4).IsRequired();
+            entity.Property(e => e.StockNuevo).HasPrecision(18, 4).IsRequired();
+            entity.Property(e => e.Motivo).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Observaciones).HasMaxLength(500);
+            entity.HasOne(e => e.Instalacion)
+                  .WithMany()
+                  .HasForeignKey(e => e.InstalacionId);
+            entity.HasOne(e => e.Producto)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProductoId);
+        });
+
+        // Configuración de Cliente
+        modelBuilder.Entity<Cliente>(entity =>
+        {
+            entity.ToTable("Cliente", "Ven");
+            entity.HasKey(e => e.ClienteId);
+            entity.Property(e => e.RFC).HasMaxLength(13).IsRequired();
+            entity.HasIndex(e => e.RFC).IsUnique();
+            entity.Property(e => e.NombreCorto).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.RazonSocial).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Email).HasMaxLength(255);
+            entity.Property(e => e.Telefono).HasMaxLength(30);
+            entity.Property(e => e.Direccion).HasMaxLength(300);
+            entity.Property(e => e.Ciudad).HasMaxLength(100);
+            entity.Property(e => e.CodigoPostal).HasMaxLength(10);
+            entity.Property(e => e.Contacto).HasMaxLength(150);
+            entity.Property(e => e.Saldo).HasPrecision(18, 2);
+        });
+
+        // Configuración de Venta
+        modelBuilder.Entity<Venta>(entity =>
+        {
+            entity.ToTable("Venta", "Ven");
+            entity.HasKey(e => e.VentaId);
+            entity.Property(e => e.Folio).HasMaxLength(50).IsRequired();
+            entity.HasIndex(e => e.Folio).IsUnique();
+            entity.Property(e => e.MontoTotal).HasPrecision(18, 2);
+            entity.Property(e => e.Comentarios).HasMaxLength(500);
+            entity.HasOne(e => e.Instalacion)
+                  .WithMany()
+                  .HasForeignKey(e => e.InstalacionId);
+            entity.HasOne(e => e.Cliente)
+                  .WithMany(e => e.Ventas)
+                  .HasForeignKey(e => e.ClienteId);
+            entity.HasOne(e => e.Estatus)
+                  .WithMany()
+                  .HasForeignKey(e => e.EstatusId);
+        });
+
+        // Configuración de VentaDetalle
+        modelBuilder.Entity<VentaDetalle>(entity =>
+        {
+            entity.ToTable("VentaDetalle", "Ven");
+            entity.HasKey(e => e.DetalleId);
+            entity.Property(e => e.Cantidad).HasPrecision(18, 4);
+            entity.Property(e => e.PrecioUnitario).HasPrecision(18, 4);
+            entity.Property(e => e.Descuento).HasPrecision(5, 2);
+            entity.Property(e => e.Subtotal).HasPrecision(18, 2);
+            entity.HasOne(e => e.Venta)
+                  .WithMany(e => e.Detalles)
+                  .HasForeignKey(e => e.VentaId);
+            entity.HasOne(e => e.Producto)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProductoId);
+        });
+
         // Datos Semilla
         SembrarDatos(modelBuilder);
     }
@@ -281,7 +398,15 @@ public class GesvenDbContext : DbContext
             new EstatusGeneral { EstatusId = 3, Nombre = "Pendiente", Modulo = "Compras" },
             new EstatusGeneral { EstatusId = 4, Nombre = "Aprobada", Modulo = "Compras" },
             new EstatusGeneral { EstatusId = 5, Nombre = "Rechazada", Modulo = "Compras" },
-            new EstatusGeneral { EstatusId = 6, Nombre = "Recibida", Modulo = "Compras" }
+            new EstatusGeneral { EstatusId = 6, Nombre = "Recibida", Modulo = "Compras" },
+            // Estatus de Ventas
+            new EstatusGeneral { EstatusId = 7, Nombre = "Pendiente", Modulo = "Ventas" },
+            new EstatusGeneral { EstatusId = 8, Nombre = "Facturada", Modulo = "Ventas" },
+            new EstatusGeneral { EstatusId = 9, Nombre = "Cancelada", Modulo = "Ventas" },
+            // Estatus de Transferencias
+            new EstatusGeneral { EstatusId = 10, Nombre = "EnTransito", Modulo = "Transferencias" },
+            new EstatusGeneral { EstatusId = 11, Nombre = "Recibida", Modulo = "Transferencias" },
+            new EstatusGeneral { EstatusId = 12, Nombre = "Cancelada", Modulo = "Transferencias" }
         );
 
         // Usuario del sistema
@@ -576,6 +701,105 @@ public class GesvenDbContext : DbContext
             new Movimiento { MovimientoId = 27, InstalacionId = 4, ProductoId = 31, TipoMovimiento = 'E', Cantidad = 30, SaldoFinal = 30, CostoUnitario = 36.00m, CreadoEn = fechaSistema, CreadoPor = 1 },
             new Movimiento { MovimientoId = 28, InstalacionId = 4, ProductoId = 32, TipoMovimiento = 'E', Cantidad = 8, SaldoFinal = 8, CostoUnitario = 520.00m, CreadoEn = fechaSistema, CreadoPor = 1 },
             new Movimiento { MovimientoId = 29, InstalacionId = 4, ProductoId = 33, TipoMovimiento = 'E', Cantidad = 10, SaldoFinal = 10, CostoUnitario = 115.00m, CreadoEn = fechaSistema, CreadoPor = 1 }
+        );
+
+        // Clientes
+        modelBuilder.Entity<Cliente>().HasData(
+            new Cliente
+            {
+                ClienteId = 1,
+                RFC = "CNO920815AB0",
+                NombreCorto = "COM NORTE",
+                RazonSocial = "Comercializadora del Norte SA de CV",
+                Email = "compras@comnorte.com",
+                Telefono = "81-1234-5678",
+                Direccion = "Av. Constitución 1500, Col. Centro",
+                Ciudad = "Monterrey, NL",
+                CodigoPostal = "64000",
+                Contacto = "Lic. Carlos Méndez",
+                Saldo = 15000.00m,
+                Activo = true,
+                CreadoEn = fechaSistema,
+                CreadoPor = 1,
+                ActualizadoEn = fechaSistema,
+                ActualizadoPor = 1
+            },
+            new Cliente
+            {
+                ClienteId = 2,
+                RFC = "DRE881023CD5",
+                NombreCorto = "REGIO EXPRESS",
+                RazonSocial = "Distribuidora Regio Express SA",
+                Email = "ventas@regioexpress.mx",
+                Telefono = "81-8765-4321",
+                Direccion = "Blvd. Díaz Ordaz 234, Col. Santa María",
+                Ciudad = "San Pedro Garza García, NL",
+                CodigoPostal = "66220",
+                Contacto = "Ing. María González",
+                Saldo = 8500.00m,
+                Activo = true,
+                CreadoEn = fechaSistema,
+                CreadoPor = 1,
+                ActualizadoEn = fechaSistema,
+                ActualizadoPor = 1
+            },
+            new Cliente
+            {
+                ClienteId = 3,
+                RFC = "TDM950612GH3",
+                NombreCorto = "DON MANUEL",
+                RazonSocial = "Tiendas Don Manuel S de RL",
+                Email = "admin@donmanuel.com",
+                Telefono = "81-2345-6789",
+                Direccion = "Calle Morelos 567, Col. Obrera",
+                Ciudad = "Monterrey, NL",
+                CodigoPostal = "64010",
+                Contacto = "Manuel Rodríguez",
+                Saldo = 0m,
+                Activo = true,
+                CreadoEn = fechaSistema,
+                CreadoPor = 1,
+                ActualizadoEn = fechaSistema,
+                ActualizadoPor = 1
+            },
+            new Cliente
+            {
+                ClienteId = 4,
+                RFC = "ALE780930JK1",
+                NombreCorto = "LA ESPERANZA",
+                RazonSocial = "Abarrotes La Esperanza SA",
+                Email = "compras@laesperanza.mx",
+                Telefono = "81-3456-7890",
+                Direccion = "Av. Ruiz Cortines 890, Col. Cumbres",
+                Ciudad = "Monterrey, NL",
+                CodigoPostal = "64610",
+                Contacto = "Sra. Patricia López",
+                Saldo = 3200.00m,
+                Activo = false,
+                CreadoEn = fechaSistema,
+                CreadoPor = 1,
+                ActualizadoEn = fechaSistema,
+                ActualizadoPor = 1
+            },
+            new Cliente
+            {
+                ClienteId = 5,
+                RFC = "SFU910215LM9",
+                NombreCorto = "FAMILIA UNIDA",
+                RazonSocial = "Supermercados Familia Unida SA de CV",
+                Email = "compras@familiaunida.com",
+                Telefono = "81-9876-5432",
+                Direccion = "Av. Lincoln 1234, Col. Mitras",
+                Ciudad = "Monterrey, NL",
+                CodigoPostal = "64320",
+                Contacto = "Ing. Roberto Sánchez",
+                Saldo = 0m,
+                Activo = true,
+                CreadoEn = fechaSistema,
+                CreadoPor = 1,
+                ActualizadoEn = fechaSistema,
+                ActualizadoPor = 1
+            }
         );
     }
 }
