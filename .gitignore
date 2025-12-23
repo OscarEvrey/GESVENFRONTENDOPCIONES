@@ -196,6 +196,9 @@ packages/api-client/src/generated/
 *.sqlite
 *.sqlite3
 *.db
+*.db-shm
+*.db-wal
+*.db-journal
 
 # ====================
 # Documentation builds

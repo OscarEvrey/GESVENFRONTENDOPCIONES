@@ -42,6 +42,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useInstalacionActivaObligatoria } from '../../context/ContextoInstalacion';
 import { useOrdenesCompra } from '../../context/ContextoOrdenesCompra';
+import {
+  useCrearOrdenCompra,
+  useInstalacionesApi,
+  useProductosParaCompraApi,
+  useProveedoresApi,
+} from '../../hooks/useGesvenApi';
 
 // ============ TIPOS ============
 interface LineaOrden {
@@ -52,38 +58,6 @@ interface LineaOrden {
   costoUnitario: number;
   subtotal: number;
 }
-
-// ============ PROVEEDORES FICTICIOS ============
-const PROVEEDORES = [
-  { id: 'prov-001', nombre: 'Aceros del Norte SA' },
-  { id: 'prov-002', nombre: 'Distribuidora de Papelería Omega' },
-  { id: 'prov-003', nombre: 'Comercializadora de Bebidas del Golfo' },
-  { id: 'prov-004', nombre: 'Suministros Industriales MTY' },
-  { id: 'prov-005', nombre: 'Alimentos y Snacks del Pacífico' },
-];
-
-// ============ ARTÍCULOS FICTICIOS SEGÚN TIPO DE INSTALACIÓN ============
-const ARTICULOS_ALMACEN = [
-  { id: 'art-a01', nombre: 'Coca-Cola 600ml', costoSugerido: 12.5 },
-  { id: 'art-a02', nombre: 'Pepsi 600ml', costoSugerido: 11.8 },
-  { id: 'art-a03', nombre: 'Sabritas Original 45g', costoSugerido: 9.5 },
-  { id: 'art-a04', nombre: 'Doritos Nacho 62g', costoSugerido: 12.0 },
-  { id: 'art-a05', nombre: 'Agua Ciel 1L', costoSugerido: 8.0 },
-  { id: 'art-a06', nombre: 'Gatorade 600ml', costoSugerido: 18.5 },
-  { id: 'art-a07', nombre: 'Galletas Marías 170g', costoSugerido: 14.0 },
-  { id: 'art-a08', nombre: 'Cacahuates Japoneses 110g', costoSugerido: 16.5 },
-];
-
-const ARTICULOS_OFICINAS = [
-  { id: 'art-o01', nombre: 'Hojas Blancas Carta (500)', costoSugerido: 75.0 },
-  { id: 'art-o02', nombre: 'Plumas BIC Azul (12)', costoSugerido: 36.0 },
-  { id: 'art-o03', nombre: 'Toner HP 85A', costoSugerido: 520.0 },
-  { id: 'art-o04', nombre: 'Folders Carta (25)', costoSugerido: 65.0 },
-  { id: 'art-o05', nombre: 'Post-it Colores (5)', costoSugerido: 55.0 },
-  { id: 'art-o06', nombre: 'Clips Jumbo (100)', costoSugerido: 18.0 },
-  { id: 'art-o07', nombre: 'Café Nescafé Clásico 200g', costoSugerido: 115.0 },
-  { id: 'art-o08', nombre: 'Azúcar 1kg', costoSugerido: 28.0 },
-];
 
 // ============ SCHEMA DE VALIDACIÓN ============
 const lineaSchema = z.object({
@@ -100,6 +74,10 @@ export function NuevaOrdenCompraPage() {
   const [proveedorId, setProveedorId] = useState<string>('');
   const [comentarios, setComentarios] = useState<string>('');
 
+  const { instalaciones: instalacionesApi } = useInstalacionesApi();
+  const { proveedores, cargando: cargandoProveedores, error: errorProveedores } = useProveedoresApi();
+  const { crearOrden, creando } = useCrearOrdenCompra();
+
   // Formulario para agregar líneas
   const form = useForm<z.infer<typeof lineaSchema>>({
     resolver: zodResolver(lineaSchema),
@@ -110,8 +88,8 @@ export function NuevaOrdenCompraPage() {
     },
   });
 
-  // ID de la orden (generado automáticamente)
-  const idOrden = useMemo(() => generarIdOrden(), [generarIdOrden]);
+  // ID de la orden (referencia local)
+  const [idOrden, setIdOrden] = useState(() => generarIdOrden());
 
   // Fecha actual
   const fechaHoy = new Date().toLocaleDateString('es-MX', {
@@ -120,12 +98,19 @@ export function NuevaOrdenCompraPage() {
     day: '2-digit',
   });
 
-  // Artículos según tipo de instalación
-  const articulos = useMemo(() => {
-    return instalacionActiva.tipo === 'almacen'
-      ? ARTICULOS_ALMACEN
-      : ARTICULOS_OFICINAS;
-  }, [instalacionActiva]);
+  // Resolver InstalacionId numérico del backend
+  const instalacionApiId = useMemo(() => {
+    const match = instalacionesApi.find(
+      (i) => i.nombre.toLowerCase() === instalacionActiva.nombre.toLowerCase(),
+    );
+    return match?.instalacionId ?? null;
+  }, [instalacionesApi, instalacionActiva.nombre]);
+
+  const {
+    productos: productosParaCompra,
+    cargando: cargandoProductos,
+    error: errorProductos,
+  } = useProductosParaCompraApi(instalacionApiId);
 
   // Total de la orden
   const totalOrden = useMemo(() => {
@@ -134,22 +119,26 @@ export function NuevaOrdenCompraPage() {
 
   // Manejar selección de artículo
   const handleArticuloChange = (articuloId: string) => {
-    const articulo = articulos.find((a) => a.id === articuloId);
-    if (articulo) {
-      form.setValue('articuloId', articuloId);
-      form.setValue('costoUnitario', articulo.costoSugerido);
-    }
+    const producto = productosParaCompra.find(
+      (p) => String(p.productoId) === articuloId,
+    );
+    if (!producto) return;
+
+    form.setValue('articuloId', articuloId);
+    form.setValue('costoUnitario', Number(producto.costoSugerido));
   };
 
   // Agregar línea
   const agregarLinea = (datos: z.infer<typeof lineaSchema>) => {
-    const articulo = articulos.find((a) => a.id === datos.articuloId);
-    if (!articulo) return;
+    const producto = productosParaCompra.find(
+      (p) => String(p.productoId) === datos.articuloId,
+    );
+    if (!producto) return;
 
     const nuevaLinea: LineaOrden = {
       id: `linea-${Date.now()}`,
       articuloId: datos.articuloId,
-      articuloNombre: articulo.nombre,
+      articuloNombre: producto.nombre,
       cantidad: datos.cantidad,
       costoUnitario: datos.costoUnitario,
       subtotal: datos.cantidad * datos.costoUnitario,
@@ -164,8 +153,12 @@ export function NuevaOrdenCompraPage() {
     setLineas((prev) => prev.filter((l) => l.id !== id));
   };
 
-  // Guardar orden
-  const guardarOrden = () => {
+  // Guardar orden (API)
+  const guardarOrden = async () => {
+    if (!instalacionApiId) {
+      toast.error('No se pudo resolver la instalación en el backend');
+      return;
+    }
     if (!proveedorId) {
       toast.error('Por favor seleccione un proveedor');
       return;
@@ -175,10 +168,34 @@ export function NuevaOrdenCompraPage() {
       return;
     }
 
-    const proveedor = PROVEEDORES.find((p) => p.id === proveedorId);
+    if (errorProveedores || errorProductos) {
+      toast.error('Error cargando catálogos. Revise conexión al backend');
+      return;
+    }
 
+    const proveedor = proveedores.find(
+      (p) => String(p.proveedorId) === proveedorId,
+    );
+
+    const resultado = await crearOrden({
+      instalacionId: instalacionApiId,
+      proveedorId: Number(proveedorId),
+      comentarios,
+      lineas: lineas.map((l) => ({
+        productoId: Number(l.articuloId),
+        cantidad: l.cantidad,
+        costoUnitario: l.costoUnitario,
+      })),
+    });
+
+    if (!resultado) {
+      toast.error('No se pudo crear la orden de compra');
+      return;
+    }
+
+    // Mantener el contexto actual (mock) sincronizado para pantallas que aún lo usan
     agregarOrden({
-      id: idOrden,
+      id: `OC-${resultado.ordenCompraId}`,
       instalacionId: instalacionActiva.id,
       instalacionNombre: instalacionActiva.nombre,
       proveedorId,
@@ -196,13 +213,16 @@ export function NuevaOrdenCompraPage() {
       estatus: 'pendiente',
     });
 
-    toast.success(`Orden de Compra ${idOrden} creada exitosamente`);
+    toast.success(`Orden de compra ${resultado.ordenCompraId} creada exitosamente`);
 
     // Limpiar formulario
     setLineas([]);
     setProveedorId('');
     setComentarios('');
     form.reset();
+
+    // Generar nueva referencia local para una siguiente orden
+    setIdOrden(generarIdOrden());
   };
 
   return (
@@ -272,13 +292,17 @@ export function NuevaOrdenCompraPage() {
               {/* Proveedor (SelectBox) */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Proveedor *</label>
-                <Select value={proveedorId} onValueChange={setProveedorId}>
+                <Select
+                  value={proveedorId}
+                  onValueChange={setProveedorId}
+                  disabled={cargandoProveedores}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar proveedor" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PROVEEDORES.map((prov) => (
-                      <SelectItem key={prov.id} value={prov.id}>
+                    {proveedores.map((prov) => (
+                      <SelectItem key={prov.proveedorId} value={String(prov.proveedorId)}>
                         {prov.nombre}
                       </SelectItem>
                     ))}
@@ -321,6 +345,7 @@ export function NuevaOrdenCompraPage() {
                       <Select
                         value={field.value}
                         onValueChange={handleArticuloChange}
+                        disabled={cargandoProductos}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -328,9 +353,9 @@ export function NuevaOrdenCompraPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {articulos.map((art) => (
-                            <SelectItem key={art.id} value={art.id}>
-                              {art.nombre}
+                          {productosParaCompra.map((p) => (
+                            <SelectItem key={p.productoId} value={String(p.productoId)}>
+                              {p.nombre}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -465,7 +490,7 @@ export function NuevaOrdenCompraPage() {
             <Button
               onClick={guardarOrden}
               size="lg"
-              disabled={lineas.length === 0 || !proveedorId}
+              disabled={lineas.length === 0 || !proveedorId || creando}
             >
               Guardar Orden (Pendiente)
             </Button>

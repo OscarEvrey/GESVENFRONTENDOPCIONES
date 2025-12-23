@@ -1,14 +1,14 @@
-import { Helmet } from 'react-helmet-async';
+import { useEffect } from 'react';
 import { LayoutProvider } from './components/context';
 import { Main } from './components/main';
 
 export function DefaultLayout() {
+  useEffect(() => {
+    document.title = 'Gesven';
+  }, []);
+
   return (
     <>
-      <Helmet>
-        <title>Metronic - Tienda Inventario</title>
-      </Helmet>
-
       <LayoutProvider>
         <Main />
       </LayoutProvider>
