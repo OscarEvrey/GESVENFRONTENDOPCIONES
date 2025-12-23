@@ -1,6 +1,7 @@
 using GesvenApi.Datos;
 using GesvenApi.DTOs;
 using GesvenApi.Modelos.Compras;
+using GesvenApi.Modelos.Inventario;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static GesvenApi.ConstantesGesven;
@@ -26,6 +27,240 @@ public class ComprasController : ControllerBase
     {
         _contexto = contexto;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// GET /api/compras/pendientes
+    /// Lista órdenes de compra pendientes de aprobación.
+    /// </summary>
+    [HttpGet("pendientes")]
+    [ProducesResponseType(typeof(RespuestaApi<List<OrdenCompraRespuestaDto>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<RespuestaApi<List<OrdenCompraRespuestaDto>>>> ObtenerPendientes([FromQuery] int? instalacionId = null)
+    {
+        var query = _contexto.OrdenesCompra
+            .Include(o => o.Instalacion)
+            .Include(o => o.Proveedor)
+            .Include(o => o.Estatus)
+            .Include(o => o.Detalles)
+            .Where(o => o.EstatusId == EstatusIds.Pendiente);
+
+        if (instalacionId.HasValue)
+        {
+            query = query.Where(o => o.InstalacionId == instalacionId.Value);
+        }
+
+        var ordenes = await MapearOrdenes(query);
+        return Ok(new RespuestaApi<List<OrdenCompraRespuestaDto>>
+        {
+            Exito = true,
+            Mensaje = $"Se encontraron {ordenes.Count} órdenes pendientes",
+            Datos = ordenes
+        });
+    }
+
+    /// <summary>
+    /// POST /api/compras/{id}/aprobar
+    /// Aprueba una orden de compra.
+    /// </summary>
+    [HttpPost("{id}/aprobar")]
+    [ProducesResponseType(typeof(RespuestaApi<bool>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RespuestaApi<bool>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<RespuestaApi<bool>>> AprobarOrden(int id)
+    {
+        var orden = await _contexto.OrdenesCompra.FindAsync(id);
+        if (orden is null)
+        {
+            return NotFound(new RespuestaApi<bool>
+            {
+                Exito = false,
+                Mensaje = "Orden de compra no encontrada"
+            });
+        }
+
+        orden.EstatusId = EstatusIds.Aprobada;
+        orden.FechaAprobacion = DateTime.UtcNow;
+        await _contexto.SaveChangesAsync();
+
+        return Ok(new RespuestaApi<bool>
+        {
+            Exito = true,
+            Mensaje = "Orden aprobada",
+            Datos = true
+        });
+    }
+
+    /// <summary>
+    /// POST /api/compras/{id}/rechazar
+    /// Rechaza una orden de compra.
+    /// </summary>
+    [HttpPost("{id}/rechazar")]
+    [ProducesResponseType(typeof(RespuestaApi<bool>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RespuestaApi<bool>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(RespuestaApi<bool>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<RespuestaApi<bool>>> RechazarOrden(int id, [FromBody] string motivo)
+    {
+        if (string.IsNullOrWhiteSpace(motivo))
+        {
+            return BadRequest(new RespuestaApi<bool>
+            {
+                Exito = false,
+                Mensaje = "Debe indicar un motivo de rechazo"
+            });
+        }
+
+        var orden = await _contexto.OrdenesCompra.FindAsync(id);
+        if (orden is null)
+        {
+            return NotFound(new RespuestaApi<bool>
+            {
+                Exito = false,
+                Mensaje = "Orden de compra no encontrada"
+            });
+        }
+
+        orden.EstatusId = EstatusIds.Rechazada;
+        orden.MotivoRechazo = motivo;
+        orden.FechaRechazo = DateTime.UtcNow;
+        await _contexto.SaveChangesAsync();
+
+        return Ok(new RespuestaApi<bool>
+        {
+            Exito = true,
+            Mensaje = "Orden rechazada",
+            Datos = true
+        });
+    }
+
+    /// <summary>
+    /// GET /api/compras/aprobadas
+    /// Lista órdenes aprobadas listas para recepción.
+    /// </summary>
+    [HttpGet("aprobadas")]
+    [ProducesResponseType(typeof(RespuestaApi<List<OrdenCompraRespuestaDto>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<RespuestaApi<List<OrdenCompraRespuestaDto>>>> ObtenerAprobadas([FromQuery] int? instalacionId = null)
+    {
+        var query = _contexto.OrdenesCompra
+            .Include(o => o.Instalacion)
+            .Include(o => o.Proveedor)
+            .Include(o => o.Estatus)
+            .Include(o => o.Detalles)
+            .Where(o => o.EstatusId == EstatusIds.Aprobada);
+
+        if (instalacionId.HasValue)
+        {
+            query = query.Where(o => o.InstalacionId == instalacionId.Value);
+        }
+
+        var ordenes = await MapearOrdenes(query);
+        return Ok(new RespuestaApi<List<OrdenCompraRespuestaDto>>
+        {
+            Exito = true,
+            Mensaje = $"Se encontraron {ordenes.Count} órdenes aprobadas",
+            Datos = ordenes
+        });
+    }
+
+    /// <summary>
+    /// POST /api/compras/{id}/recibir
+    /// Registra la recepción de mercancía.
+    /// </summary>
+    [HttpPost("{id}/recibir")]
+    [ProducesResponseType(typeof(RespuestaApi<bool>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(RespuestaApi<bool>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(RespuestaApi<bool>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<RespuestaApi<bool>>> RecibirOrden(int id, [FromBody] RecepcionOrdenCompraDto dto)
+    {
+        await using var transaccion = await _contexto.Database.BeginTransactionAsync();
+
+        var orden = await _contexto.OrdenesCompra
+            .Include(o => o.Detalles)
+            .FirstOrDefaultAsync(o => o.OrdenCompraId == id);
+
+        if (orden is null)
+        {
+            return NotFound(new RespuestaApi<bool>
+            {
+                Exito = false,
+                Mensaje = "Orden de compra no encontrada"
+            });
+        }
+
+        if (dto.Lineas.Count == 0)
+        {
+            return BadRequest(new RespuestaApi<bool>
+            {
+                Exito = false,
+                Mensaje = "Debe indicar al menos una línea a recibir"
+            });
+        }
+
+        foreach (var linea in dto.Lineas)
+        {
+            var detalle = orden.Detalles.FirstOrDefault(d => d.DetalleId == linea.DetalleId);
+            if (detalle is null)
+            {
+                return BadRequest(new RespuestaApi<bool>
+                {
+                    Exito = false,
+                    Mensaje = $"El detalle {linea.DetalleId} no pertenece a la orden"
+                });
+            }
+
+            if (linea.CantidadRecibida <= 0)
+            {
+                return BadRequest(new RespuestaApi<bool>
+                {
+                    Exito = false,
+                    Mensaje = "Cantidad recibida inválida"
+                });
+            }
+
+            var pendiente = detalle.CantidadSolicitada - detalle.CantidadRecibida;
+            if (linea.CantidadRecibida > pendiente)
+            {
+                return BadRequest(new RespuestaApi<bool>
+                {
+                    Exito = false,
+                    Mensaje = $"La cantidad a recibir excede el pendiente para el detalle {detalle.DetalleId}"
+                });
+            }
+
+            detalle.CantidadRecibida += linea.CantidadRecibida;
+
+            // Registrar movimiento de entrada si el producto es inventariable.
+            var producto = await _contexto.Productos.FirstAsync(p => p.ProductoId == detalle.ProductoId);
+            if (producto.EsInventariable)
+            {
+                var saldoAnterior = await ObtenerSaldoActual(producto.ProductoId, orden.InstalacionId);
+                var saldoFinal = saldoAnterior + linea.CantidadRecibida;
+
+                _contexto.Movimientos.Add(new Movimiento
+                {
+                    InstalacionId = orden.InstalacionId,
+                    ProductoId = producto.ProductoId,
+                    TipoMovimiento = TipoMovimiento.Entrada,
+                    Cantidad = linea.CantidadRecibida,
+                    SaldoFinal = saldoFinal,
+                    CostoUnitario = detalle.CostoUnitario,
+                    Lote = linea.Lote,
+                    FechaCaducidad = linea.FechaCaducidad,
+                    CreadoEn = DateTime.UtcNow,
+                    CreadoPor = UsuarioSistemaId
+                });
+            }
+        }
+
+        var completo = orden.Detalles.All(d => d.CantidadRecibida >= d.CantidadSolicitada);
+        orden.EstatusId = completo ? EstatusIds.Recibida : EstatusIds.Aprobada;
+        await _contexto.SaveChangesAsync();
+        await transaccion.CommitAsync();
+
+        return Ok(new RespuestaApi<bool>
+        {
+            Exito = true,
+            Mensaje = completo ? "Orden recibida completamente" : "Recepción parcial registrada",
+            Datos = true
+        });
     }
 
     /// <summary>
@@ -288,5 +523,43 @@ public class ComprasController : ControllerBase
                 Errores = ["Ocurrió un error interno. Por favor, intente más tarde."]
             });
         }
+    }
+
+    private async Task<List<OrdenCompraRespuestaDto>> MapearOrdenes(IQueryable<OrdenCompra> query)
+    {
+        return await query
+            .OrderByDescending(o => o.CreadoEn)
+            .Select(o => new OrdenCompraRespuestaDto
+            {
+                OrdenCompraId = o.OrdenCompraId,
+                InstalacionId = o.InstalacionId,
+                InstalacionNombre = o.Instalacion != null ? o.Instalacion.Nombre : string.Empty,
+                ProveedorId = o.ProveedorId,
+                ProveedorNombre = o.Proveedor != null ? o.Proveedor.Nombre : string.Empty,
+                Estatus = o.Estatus != null ? o.Estatus.Nombre : string.Empty,
+                MontoTotal = o.MontoTotal,
+                Comentarios = o.Comentarios,
+                CreadoEn = o.CreadoEn,
+                Detalles = o.Detalles.Select(d => new DetalleOrdenCompraRespuestaDto
+                {
+                    DetalleId = d.DetalleId,
+                    ProductoId = d.ProductoId,
+                    ProductoNombre = d.Producto != null ? d.Producto.Nombre : string.Empty,
+                    CantidadSolicitada = d.CantidadSolicitada,
+                    CostoUnitario = d.CostoUnitario,
+                    Subtotal = d.CantidadSolicitada * d.CostoUnitario
+                }).ToList()
+            })
+            .ToListAsync();
+    }
+
+    private async Task<decimal> ObtenerSaldoActual(int productoId, int instalacionId)
+    {
+        var ultimoMovimiento = await _contexto.Movimientos
+            .Where(m => m.ProductoId == productoId && m.InstalacionId == instalacionId)
+            .OrderByDescending(m => m.MovimientoId)
+            .FirstOrDefaultAsync();
+
+        return ultimoMovimiento?.SaldoFinal ?? 0;
     }
 }
