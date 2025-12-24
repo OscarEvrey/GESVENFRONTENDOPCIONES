@@ -12,7 +12,6 @@
 - `docs/frontend/README.md`
 - `docs/cross-cuttings/README.md`
 - `docs/step-7-validacion.md`
-- `docs/modernization-plan.md`
 
 ## Note
 
