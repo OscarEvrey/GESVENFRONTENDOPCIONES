@@ -1,4 +1,5 @@
 using GesvenApi.Datos;
+using GesvenApi.Servicios;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,8 @@ builder.Services.AddDbContext<GesvenDbContext>(options =>
 {
     options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure());
 });
+
+builder.Services.AddScoped<IEstatusLookupService, EstatusLookupService>();
 
 // Agregar controladores
 builder.Services.AddControllers();

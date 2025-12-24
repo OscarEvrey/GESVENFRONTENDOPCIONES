@@ -1,6 +1,7 @@
 using GesvenApi.Datos;
 using GesvenApi.DTOs;
 using GesvenApi.Modelos.Inventario;
+using GesvenApi.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static GesvenApi.ConstantesGesven;
@@ -16,11 +17,13 @@ public class ProductosController : ControllerBase
 {
     private readonly GesvenDbContext _contexto;
     private readonly ILogger<ProductosController> _logger;
+    private readonly IEstatusLookupService _estatusLookup;
 
-    public ProductosController(GesvenDbContext contexto, ILogger<ProductosController> logger)
+    public ProductosController(GesvenDbContext contexto, ILogger<ProductosController> logger, IEstatusLookupService estatusLookup)
     {
         _contexto = contexto;
         _logger = logger;
+        _estatusLookup = estatusLookup;
     }
 
     /// <summary>
@@ -149,6 +152,8 @@ public class ProductosController : ControllerBase
             });
         }
 
+        var estatusActivoId = await _estatusLookup.ObtenerIdAsync(EstatusNombres.Activo);
+
         var producto = new Producto
         {
             InstalacionId = dto.InstalacionId,
@@ -160,7 +165,7 @@ public class ProductosController : ControllerBase
             StockMinimo = dto.StockMinimo,
             Codigo = dto.Codigo,
             Categoria = dto.Categoria,
-            EstatusId = EstatusIds.Activo
+            EstatusId = estatusActivoId
         };
 
         _contexto.Productos.Add(producto);
@@ -215,7 +220,9 @@ public class ProductosController : ControllerBase
         producto.StockMinimo = dto.StockMinimo;
         producto.Codigo = dto.Codigo;
         producto.Categoria = dto.Categoria;
-        producto.EstatusId = dto.Activo ? EstatusIds.Activo : EstatusIds.Inactivo;
+        producto.EstatusId = dto.Activo
+            ? await _estatusLookup.ObtenerIdAsync(EstatusNombres.Activo)
+            : await _estatusLookup.ObtenerIdAsync(EstatusNombres.Inactivo);
 
         await _contexto.SaveChangesAsync();
 
@@ -260,7 +267,9 @@ public class ProductosController : ControllerBase
             });
         }
 
-        producto.EstatusId = activo ? EstatusIds.Activo : EstatusIds.Inactivo;
+        producto.EstatusId = activo
+            ? await _estatusLookup.ObtenerIdAsync(EstatusNombres.Activo)
+            : await _estatusLookup.ObtenerIdAsync(EstatusNombres.Inactivo);
         await _contexto.SaveChangesAsync();
 
         return Ok(new RespuestaApi<bool>

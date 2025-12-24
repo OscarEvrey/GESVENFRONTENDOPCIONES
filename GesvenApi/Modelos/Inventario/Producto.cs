@@ -46,7 +46,7 @@ public class Producto : EntidadAuditable
     /// <summary>
     /// Identificador del estatus del producto.
     /// </summary>
-    public int? EstatusId { get; set; }
+    public int EstatusId { get; set; }
 
     /// <summary>
     /// Navegación al estatus del producto.

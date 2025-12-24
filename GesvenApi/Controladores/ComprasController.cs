@@ -2,6 +2,7 @@ using GesvenApi.Datos;
 using GesvenApi.DTOs;
 using GesvenApi.Modelos.Compras;
 using GesvenApi.Modelos.Inventario;
+using GesvenApi.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static GesvenApi.ConstantesGesven;
@@ -17,16 +18,18 @@ public class ComprasController : ControllerBase
 {
     private readonly GesvenDbContext _contexto;
     private readonly ILogger<ComprasController> _logger;
+    private readonly IEstatusLookupService _estatusLookup;
 
     /// <summary>
     /// Inicializa una nueva instancia del controlador de compras.
     /// </summary>
     /// <param name="contexto">El contexto de base de datos.</param>
     /// <param name="logger">El logger para registrar eventos.</param>
-    public ComprasController(GesvenDbContext contexto, ILogger<ComprasController> logger)
+    public ComprasController(GesvenDbContext contexto, ILogger<ComprasController> logger, IEstatusLookupService estatusLookup)
     {
         _contexto = contexto;
         _logger = logger;
+        _estatusLookup = estatusLookup;
     }
 
     /// <summary>
@@ -37,12 +40,14 @@ public class ComprasController : ControllerBase
     [ProducesResponseType(typeof(RespuestaApi<List<OrdenCompraRespuestaDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<RespuestaApi<List<OrdenCompraRespuestaDto>>>> ObtenerPendientes([FromQuery] int? instalacionId = null)
     {
+        var estatusPendienteId = await _estatusLookup.ObtenerIdAsync(EstatusNombres.Pendiente, "Compras");
+
         var query = _contexto.OrdenesCompra
             .Include(o => o.Instalacion)
             .Include(o => o.Proveedor)
             .Include(o => o.Estatus)
             .Include(o => o.Detalles)
-            .Where(o => o.EstatusId == EstatusIds.Pendiente);
+            .Where(o => o.EstatusId == estatusPendienteId);
 
         if (instalacionId.HasValue)
         {
@@ -77,7 +82,7 @@ public class ComprasController : ControllerBase
             });
         }
 
-        orden.EstatusId = EstatusIds.Aprobada;
+        orden.EstatusId = await _estatusLookup.ObtenerIdAsync(EstatusNombres.Aprobada, "Compras");
         orden.FechaAprobacion = DateTime.UtcNow;
         await _contexto.SaveChangesAsync();
 
@@ -118,7 +123,7 @@ public class ComprasController : ControllerBase
             });
         }
 
-        orden.EstatusId = EstatusIds.Rechazada;
+        orden.EstatusId = await _estatusLookup.ObtenerIdAsync(EstatusNombres.Rechazada, "Compras");
         orden.MotivoRechazo = motivo;
         orden.FechaRechazo = DateTime.UtcNow;
         await _contexto.SaveChangesAsync();
@@ -139,12 +144,14 @@ public class ComprasController : ControllerBase
     [ProducesResponseType(typeof(RespuestaApi<List<OrdenCompraRespuestaDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<RespuestaApi<List<OrdenCompraRespuestaDto>>>> ObtenerAprobadas([FromQuery] int? instalacionId = null)
     {
+        var estatusAprobadaId = await _estatusLookup.ObtenerIdAsync(EstatusNombres.Aprobada, "Compras");
+
         var query = _contexto.OrdenesCompra
             .Include(o => o.Instalacion)
             .Include(o => o.Proveedor)
             .Include(o => o.Estatus)
             .Include(o => o.Detalles)
-            .Where(o => o.EstatusId == EstatusIds.Aprobada);
+            .Where(o => o.EstatusId == estatusAprobadaId);
 
         if (instalacionId.HasValue)
         {
@@ -193,6 +200,9 @@ public class ComprasController : ControllerBase
                 Mensaje = "Debe indicar al menos una línea a recibir"
             });
         }
+
+        var estatusRecibidaId = await _estatusLookup.ObtenerIdAsync(EstatusNombres.Recibida, "Compras");
+        var estatusAprobadaId = await _estatusLookup.ObtenerIdAsync(EstatusNombres.Aprobada, "Compras");
 
         foreach (var linea in dto.Lineas)
         {
@@ -251,7 +261,7 @@ public class ComprasController : ControllerBase
         }
 
         var completo = orden.Detalles.All(d => d.CantidadRecibida >= d.CantidadSolicitada);
-        orden.EstatusId = completo ? EstatusIds.Recibida : EstatusIds.Aprobada;
+        orden.EstatusId = completo ? estatusRecibidaId : estatusAprobadaId;
         await _contexto.SaveChangesAsync();
         await transaccion.CommitAsync();
 
@@ -347,11 +357,13 @@ public class ComprasController : ControllerBase
             }
 
             // Crear la orden de compra
+            var estatusPendienteId = await _estatusLookup.ObtenerIdAsync(EstatusNombres.Pendiente, "Compras");
+
             var ordenCompra = new OrdenCompra
             {
                 InstalacionId = dto.InstalacionId,
                 ProveedorId = dto.ProveedorId,
-                EstatusId = EstatusIds.Pendiente,
+                EstatusId = estatusPendienteId,
                 MontoTotal = montoTotal,
                 Comentarios = dto.Comentarios,
                 Detalles = detalles

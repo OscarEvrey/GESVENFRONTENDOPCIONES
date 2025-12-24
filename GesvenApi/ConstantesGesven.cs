@@ -17,42 +17,6 @@ public static class ConstantesGesven
     public const decimal FactorCostoSugerido = 0.7m;
 
     /// <summary>
-    /// IDs de estatus para el catálogo EstatusGeneral.
-    /// </summary>
-    public static class EstatusIds
-    {
-        /// <summary>
-        /// Estatus: Activo (General)
-        /// </summary>
-        public const int Activo = 1;
-
-        /// <summary>
-        /// Estatus: Inactivo (General)
-        /// </summary>
-        public const int Inactivo = 2;
-
-        /// <summary>
-        /// Estatus: Pendiente (Compras)
-        /// </summary>
-        public const int Pendiente = 3;
-
-        /// <summary>
-        /// Estatus: Aprobada (Compras)
-        /// </summary>
-        public const int Aprobada = 4;
-
-        /// <summary>
-        /// Estatus: Rechazada (Compras)
-        /// </summary>
-        public const int Rechazada = 5;
-
-        /// <summary>
-        /// Estatus: Recibida (Compras)
-        /// </summary>
-        public const int Recibida = 6;
-    }
-
-    /// <summary>
     /// Nombres de estatus para mostrar en la interfaz.
     /// </summary>
     public static class EstatusNombres

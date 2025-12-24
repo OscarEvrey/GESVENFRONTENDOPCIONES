@@ -2,6 +2,7 @@ using GesvenApi.Datos;
 using GesvenApi.DTOs;
 using GesvenApi.Modelos.Inventario;
 using GesvenApi.Modelos.Ventas;
+using GesvenApi.Servicios;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static GesvenApi.ConstantesGesven;
@@ -17,11 +18,13 @@ public class VentasController : ControllerBase
 {
     private readonly GesvenDbContext _contexto;
     private readonly ILogger<VentasController> _logger;
+    private readonly IEstatusLookupService _estatusLookup;
 
-    public VentasController(GesvenDbContext contexto, ILogger<VentasController> logger)
+    public VentasController(GesvenDbContext contexto, ILogger<VentasController> logger, IEstatusLookupService estatusLookup)
     {
         _contexto = contexto;
         _logger = logger;
+        _estatusLookup = estatusLookup;
     }
 
     /// <summary>
@@ -218,12 +221,14 @@ public class VentasController : ControllerBase
             }
         }
 
+        var estatusPendiente = await _estatusLookup.ObtenerIdAsync(EstatusNombres.Pendiente, "Ventas");
+
         var venta = new Venta
         {
             InstalacionId = dto.InstalacionId,
             ClienteId = dto.ClienteId,
             FechaVenta = DateTime.UtcNow,
-            EstatusId = EstatusIds.Pendiente,
+            EstatusId = estatusPendiente,
             Comentarios = dto.Comentarios
         };
 
@@ -296,7 +301,7 @@ public class VentasController : ControllerBase
             });
         }
 
-        venta.EstatusId = EstatusIds.Rechazada;
+        venta.EstatusId = await _estatusLookup.ObtenerIdAsync(EstatusNombres.Rechazada, "Ventas");
         if (!string.IsNullOrWhiteSpace(motivo))
         {
             venta.Comentarios = $"{venta.Comentarios} | Cancelación: {motivo}".Trim();

@@ -161,12 +161,16 @@ public class GesvenDbContext : DbContext
             entity.Property(e => e.Categoria).HasMaxLength(100);
             entity.Property(e => e.PrecioUnitario).HasPrecision(18, 4);
             entity.Property(e => e.StockMinimo).HasPrecision(18, 4);
+            entity.Property(e => e.EstatusId).IsRequired();
             entity.HasOne(e => e.Marca)
                   .WithMany(e => e.Productos)
                   .HasForeignKey(e => e.MarcaId);
             entity.HasOne(e => e.Unidad)
                   .WithMany(e => e.Productos)
                   .HasForeignKey(e => e.UnidadId);
+            entity.HasOne(e => e.Estatus)
+                .WithMany()
+                .HasForeignKey(e => e.EstatusId);
         });
 
         // Configuración de Movimiento

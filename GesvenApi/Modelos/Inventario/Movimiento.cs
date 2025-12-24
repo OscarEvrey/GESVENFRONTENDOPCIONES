@@ -10,7 +10,7 @@ public class Movimiento
     /// <summary>
     /// Identificador único del movimiento.
     /// </summary>
-    public long MovimientoId { get; set; }
+    public int MovimientoId { get; set; }
 
     /// <summary>
     /// Identificador de la instalación.
