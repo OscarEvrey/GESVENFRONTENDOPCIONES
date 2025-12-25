@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using GesvenApi.Data;
 using GesvenApi.Models.Dtos.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +15,12 @@ namespace GesvenApi.Controllers;
 public class MovimientosController : ControllerBase
 {
     private readonly GesvenDbContext _contexto;
+        private readonly IMapper _mapper;
 
-    public MovimientosController(GesvenDbContext contexto)
+        public MovimientosController(GesvenDbContext contexto, IMapper mapper)
     {
         _contexto = contexto;
+            _mapper = mapper;
     }
 
     /// <summary>
@@ -53,20 +57,7 @@ public class MovimientosController : ControllerBase
 
         var movimientos = await query
             .OrderByDescending(m => m.CreadoEn)
-            .Select(m => new MovimientoDto
-            {
-                MovimientoId = m.MovimientoId,
-                InstalacionId = m.InstalacionId,
-                ProductoId = m.ProductoId,
-                ProductoNombre = m.Producto != null ? m.Producto.Nombre : string.Empty,
-                TipoMovimiento = m.TipoMovimiento,
-                Cantidad = m.Cantidad,
-                SaldoFinal = m.SaldoFinal,
-                CostoUnitario = m.CostoUnitario,
-                Lote = m.Lote,
-                FechaCaducidad = m.FechaCaducidad,
-                CreadoEn = m.CreadoEn
-            })
+            .ProjectTo<MovimientoDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
 
         return Ok(new RespuestaApi<List<MovimientoDto>>

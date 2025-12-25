@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using GesvenApi.Data;
 using GesvenApi.Models.Dtos.Requests;
 using GesvenApi.Models.Dtos.Responses;
@@ -16,11 +18,13 @@ namespace GesvenApi.Controllers;
 public class AjustesController : ControllerBase
 {
     private readonly GesvenDbContext _contexto;
+        private readonly IMapper _mapper;
     private readonly ILogger<AjustesController> _logger;
 
-    public AjustesController(GesvenDbContext contexto, ILogger<AjustesController> logger)
+    public AjustesController(GesvenDbContext contexto, IMapper mapper, ILogger<AjustesController> logger)
     {
         _contexto = contexto;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -44,21 +48,7 @@ public class AjustesController : ControllerBase
 
         var ajustes = await query
             .OrderByDescending(a => a.FechaAjuste)
-            .Select(a => new AjusteRespuestaDto
-            {
-                AjusteId = a.AjusteId,
-                InstalacionId = a.InstalacionId,
-                InstalacionNombre = a.Instalacion != null ? a.Instalacion.Nombre : string.Empty,
-                ProductoId = a.ProductoId,
-                ProductoNombre = a.Producto != null ? a.Producto.Nombre : string.Empty,
-                TipoAjuste = a.TipoAjuste,
-                Cantidad = a.Cantidad,
-                StockAnterior = a.StockAnterior,
-                StockNuevo = a.StockNuevo,
-                Motivo = a.Motivo,
-                Observaciones = a.Observaciones,
-                FechaAjuste = a.FechaAjuste
-            })
+            .ProjectTo<AjusteRespuestaDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
 
         return Ok(new RespuestaApi<List<AjusteRespuestaDto>>
@@ -143,21 +133,10 @@ public class AjustesController : ControllerBase
 
         await _contexto.SaveChangesAsync();
 
-        var respuesta = new AjusteRespuestaDto
-        {
-            AjusteId = ajuste.AjusteId,
-            InstalacionId = ajuste.InstalacionId,
-            InstalacionNombre = string.Empty,
-            ProductoId = ajuste.ProductoId,
-            ProductoNombre = producto.Nombre,
-            TipoAjuste = ajuste.TipoAjuste,
-            Cantidad = ajuste.Cantidad,
-            StockAnterior = ajuste.StockAnterior,
-            StockNuevo = ajuste.StockNuevo,
-            Motivo = ajuste.Motivo,
-            Observaciones = ajuste.Observaciones,
-            FechaAjuste = ajuste.FechaAjuste
-        };
+        var respuesta = await _contexto.AjustesInventario
+            .Where(a => a.AjusteId == ajuste.AjusteId)
+            .ProjectTo<AjusteRespuestaDto>(_mapper.ConfigurationProvider)
+            .FirstAsync();
 
         return Ok(new RespuestaApi<AjusteRespuestaDto>
         {

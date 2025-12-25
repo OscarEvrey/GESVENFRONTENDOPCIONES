@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using GesvenApi.Data;
 using GesvenApi.Models.Dtos.Requests;
 using GesvenApi.Models.Dtos.Responses;
@@ -16,11 +18,13 @@ namespace GesvenApi.Controllers;
 public class TransferenciasController : ControllerBase
 {
     private readonly GesvenDbContext _contexto;
+        private readonly IMapper _mapper;
     private readonly ILogger<TransferenciasController> _logger;
 
-    public TransferenciasController(GesvenDbContext contexto, ILogger<TransferenciasController> logger)
+    public TransferenciasController(GesvenDbContext contexto, IMapper mapper, ILogger<TransferenciasController> logger)
     {
         _contexto = contexto;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -33,10 +37,6 @@ public class TransferenciasController : ControllerBase
     public async Task<ActionResult<RespuestaApi<List<TransferenciaRespuestaDto>>>> ObtenerTransferencias([FromQuery] int? instalacionId = null, [FromQuery] string? estatus = null)
     {
         var query = _contexto.Transferencias
-            .Include(t => t.InstalacionOrigen)
-            .Include(t => t.InstalacionDestino)
-            .Include(t => t.Detalles)
-                .ThenInclude(d => d.Producto)
             .AsQueryable();
 
         if (instalacionId.HasValue)
@@ -51,27 +51,7 @@ public class TransferenciasController : ControllerBase
 
         var transferencias = await query
             .OrderByDescending(t => t.FechaEnvio)
-            .Select(t => new TransferenciaRespuestaDto
-            {
-                TransferenciaId = t.TransferenciaId,
-                Folio = t.Folio,
-                InstalacionOrigenId = t.InstalacionOrigenId,
-                InstalacionOrigenNombre = t.InstalacionOrigen != null ? t.InstalacionOrigen.Nombre : string.Empty,
-                InstalacionDestinoId = t.InstalacionDestinoId,
-                InstalacionDestinoNombre = t.InstalacionDestino != null ? t.InstalacionDestino.Nombre : string.Empty,
-                FechaEnvio = t.FechaEnvio,
-                FechaRecepcion = t.FechaRecepcion,
-                Estatus = t.Estatus,
-                Comentarios = t.Comentarios,
-                Detalles = t.Detalles.Select(d => new DetalleTransferenciaRespuestaDto
-                {
-                    DetalleId = d.DetalleId,
-                    ProductoId = d.ProductoId,
-                    ProductoNombre = d.Producto != null ? d.Producto.Nombre : string.Empty,
-                    CantidadEnviada = d.CantidadEnviada,
-                    CantidadRecibida = d.CantidadRecibida
-                }).ToList()
-            })
+            .ProjectTo<TransferenciaRespuestaDto>(_mapper.ConfigurationProvider)
             .ToListAsync();
 
         return Ok(new RespuestaApi<List<TransferenciaRespuestaDto>>
@@ -92,11 +72,9 @@ public class TransferenciasController : ControllerBase
     public async Task<ActionResult<RespuestaApi<TransferenciaRespuestaDto>>> ObtenerTransferencia(int id)
     {
         var transferencia = await _contexto.Transferencias
-            .Include(t => t.InstalacionOrigen)
-            .Include(t => t.InstalacionDestino)
-            .Include(t => t.Detalles)
-                .ThenInclude(d => d.Producto)
-            .FirstOrDefaultAsync(t => t.TransferenciaId == id);
+            .Where(t => t.TransferenciaId == id)
+            .ProjectTo<TransferenciaRespuestaDto>(_mapper.ConfigurationProvider)
+            .FirstOrDefaultAsync();
 
         if (transferencia is null)
         {
@@ -107,33 +85,11 @@ public class TransferenciasController : ControllerBase
             });
         }
 
-        var dto = new TransferenciaRespuestaDto
-        {
-            TransferenciaId = transferencia.TransferenciaId,
-            Folio = transferencia.Folio,
-            InstalacionOrigenId = transferencia.InstalacionOrigenId,
-            InstalacionOrigenNombre = transferencia.InstalacionOrigen?.Nombre ?? string.Empty,
-            InstalacionDestinoId = transferencia.InstalacionDestinoId,
-            InstalacionDestinoNombre = transferencia.InstalacionDestino?.Nombre ?? string.Empty,
-            FechaEnvio = transferencia.FechaEnvio,
-            FechaRecepcion = transferencia.FechaRecepcion,
-            Estatus = transferencia.Estatus,
-            Comentarios = transferencia.Comentarios,
-            Detalles = transferencia.Detalles.Select(d => new DetalleTransferenciaRespuestaDto
-            {
-                DetalleId = d.DetalleId,
-                ProductoId = d.ProductoId,
-                ProductoNombre = d.Producto?.Nombre ?? string.Empty,
-                CantidadEnviada = d.CantidadEnviada,
-                CantidadRecibida = d.CantidadRecibida
-            }).ToList()
-        };
-
         return Ok(new RespuestaApi<TransferenciaRespuestaDto>
         {
             Exito = true,
             Mensaje = "Transferencia obtenida",
-            Datos = dto
+            Datos = transferencia
         });
     }
 
@@ -384,27 +340,10 @@ public class TransferenciasController : ControllerBase
                 .ThenInclude(d => d.Producto)
             .FirstAsync(x => x.TransferenciaId == transferenciaId);
 
-        return new TransferenciaRespuestaDto
-        {
-            TransferenciaId = t.TransferenciaId,
-            Folio = t.Folio,
-            InstalacionOrigenId = t.InstalacionOrigenId,
-            InstalacionOrigenNombre = t.InstalacionOrigen?.Nombre ?? string.Empty,
-            InstalacionDestinoId = t.InstalacionDestinoId,
-            InstalacionDestinoNombre = t.InstalacionDestino?.Nombre ?? string.Empty,
-            FechaEnvio = t.FechaEnvio,
-            FechaRecepcion = t.FechaRecepcion,
-            Estatus = t.Estatus,
-            Comentarios = t.Comentarios,
-            Detalles = t.Detalles.Select(d => new DetalleTransferenciaRespuestaDto
-            {
-                DetalleId = d.DetalleId,
-                ProductoId = d.ProductoId,
-                ProductoNombre = d.Producto?.Nombre ?? string.Empty,
-                CantidadEnviada = d.CantidadEnviada,
-                CantidadRecibida = d.CantidadRecibida
-            }).ToList()
-        };
+        return await _contexto.Transferencias
+            .Where(x => x.TransferenciaId == transferenciaId)
+            .ProjectTo<TransferenciaRespuestaDto>(_mapper.ConfigurationProvider)
+            .FirstAsync();
     }
 }
 
