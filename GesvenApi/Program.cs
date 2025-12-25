@@ -1,5 +1,11 @@
-using GesvenApi.Datos;
-using GesvenApi.Servicios;
+using AutoMapper;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using GesvenApi.Data;
+using GesvenApi.Extensions;
+using GesvenApi.Services.Implementations;
+using GesvenApi.Services.Interfaces;
+using GesvenApi.Validators;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,10 +24,16 @@ builder.Services.AddDbContext<GesvenDbContext>(options =>
     options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure());
 });
 
-builder.Services.AddScoped<IEstatusLookupService, EstatusLookupService>();
+builder.Services.AddRepositories();
+builder.Services.AddGesvenServices();
 
 // Agregar controladores
 builder.Services.AddControllers();
+
+// Registrar AutoMapper y FluentValidation para validaciones y mapeos consistentes
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CrearProductoDtoValidator>();
 
 // Configurar CORS para permitir conexiones del frontend
 builder.Services.AddCors(options =>
@@ -69,6 +81,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+app.UseCustomMiddleware();
+
 // Mapear controladores
 app.MapControllers();
 
@@ -87,3 +101,4 @@ app.MapGet("/", () => new
 });
 
 app.Run();
+
