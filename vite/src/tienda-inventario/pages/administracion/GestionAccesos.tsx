@@ -11,7 +11,7 @@ export function GestionAccesosPage() {
   // Lógica extraída al Hook
   const { 
     instalacionActiva, accesos, roles, usuarios, cargando, 
-    guardarAcceso, revocarAcceso 
+    guardarAcceso, revocarAcceso, mostrarInactivos, setMostrarInactivos 
   } = useAccesos();
 
   // Estado Local (UI)
@@ -54,16 +54,29 @@ export function GestionAccesosPage() {
         </button>
       </div>
 
-      {/* Buscador */}
-      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6 relative">
-        <Search className="absolute left-7 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Buscar..."
-          className="w-full pl-10 pr-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
+      {/* Filtros */}
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar usuario o rol"
+              className="w-full pl-10 pr-3 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+          </div>
+          <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 dark:border-gray-600"
+              checked={mostrarInactivos}
+              onChange={(e) => setMostrarInactivos(e.target.checked)}
+            />
+            Mostrar inactivos
+          </label>
+        </div>
       </div>
 
       {/* Tabla */}

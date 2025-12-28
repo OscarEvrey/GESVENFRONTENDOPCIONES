@@ -17,6 +17,7 @@ export function useAccesos() {
   const [usuarios, setUsuarios] = useState<UsuarioSeguridadApiDto[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mostrarInactivos, setMostrarInactivos] = useState(true);
 
   const cargarDatos = useCallback(async () => {
     if (!instalacionActiva) return;
@@ -25,7 +26,7 @@ export function useAccesos() {
       setError(null);
 
       const [listaAccesos, listaRoles, listaUsuarios] = await Promise.all([
-        securityService.obtenerAccesos(instalacionActiva.instalacionId),
+        securityService.obtenerAccesos(instalacionActiva.instalacionId, undefined, mostrarInactivos),
         securityService.obtenerRoles(),
         securityService.obtenerUsuarios()
       ]);
@@ -38,7 +39,7 @@ export function useAccesos() {
     } finally {
       setCargando(false);
     }
-  }, [instalacionActiva]);
+  }, [instalacionActiva, mostrarInactivos]);
 
   useEffect(() => {
     cargarDatos();
@@ -82,6 +83,8 @@ export function useAccesos() {
     error,
     guardarAcceso,
     revocarAcceso,
-    recargar: cargarDatos
+    recargar: cargarDatos,
+    mostrarInactivos,
+    setMostrarInactivos
   };
 }
