@@ -10,6 +10,18 @@ public class AccesoInstalacionConfiguration : IEntityTypeConfiguration<AccesoIns
     {
         builder.ToTable("AccesoInstalacion", "Seg");
         builder.HasKey(e => e.AccesoId);
+
+            builder.Property(e => e.EsActivo)
+                  .HasDefaultValue(true);
+
+            builder.Property(e => e.PermisoCompras).HasDefaultValue(false);
+            builder.Property(e => e.PermisoVentas).HasDefaultValue(false);
+            builder.Property(e => e.PermisoInventario).HasDefaultValue(false);
+            builder.Property(e => e.PermisoFacturacion).HasDefaultValue(false);
+            builder.Property(e => e.PermisoPagos).HasDefaultValue(false);
+            builder.Property(e => e.PermisoAuditoria).HasDefaultValue(false);
+            builder.Property(e => e.PermisoCatalogos).HasDefaultValue(false);
+
         builder.HasOne(e => e.Usuario)
               .WithMany(e => e.Accesos)
               .HasForeignKey(e => e.UsuarioId);
@@ -19,5 +31,8 @@ public class AccesoInstalacionConfiguration : IEntityTypeConfiguration<AccesoIns
         builder.HasOne(e => e.Rol)
               .WithMany()
               .HasForeignKey(e => e.RolId);
+
+            builder.HasIndex(e => new { e.UsuarioId, e.InstalacionId })
+                  .IsUnique();
     }
 }

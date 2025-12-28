@@ -118,13 +118,22 @@ CREATE TABLE [Seg].[AccesoInstalacion] (
     [UsuarioId] INT NOT NULL,
     [InstalacionId] INT NOT NULL,
     [RolId] INT NOT NULL,
+    [EsActivo] BIT NOT NULL CONSTRAINT [DF_AccesoInstalacion_EsActivo] DEFAULT 1,
+    [PermisoCompras] BIT NOT NULL CONSTRAINT [DF_AccesoInstalacion_PermisoCompras] DEFAULT 0,
+    [PermisoVentas] BIT NOT NULL CONSTRAINT [DF_AccesoInstalacion_PermisoVentas] DEFAULT 0,
+    [PermisoInventario] BIT NOT NULL CONSTRAINT [DF_AccesoInstalacion_PermisoInventario] DEFAULT 0,
+    [PermisoFacturacion] BIT NOT NULL CONSTRAINT [DF_AccesoInstalacion_PermisoFacturacion] DEFAULT 0,
+    [PermisoPagos] BIT NOT NULL CONSTRAINT [DF_AccesoInstalacion_PermisoPagos] DEFAULT 0,
+    [PermisoAuditoria] BIT NOT NULL CONSTRAINT [DF_AccesoInstalacion_PermisoAuditoria] DEFAULT 0,
+    [PermisoCatalogos] BIT NOT NULL CONSTRAINT [DF_AccesoInstalacion_PermisoCatalogos] DEFAULT 0,
     [CreadoEn] DATETIME2 NOT NULL DEFAULT GETDATE(),
     [CreadoPor] INT NULL,
     [ActualizadoEn] DATETIME2 NOT NULL DEFAULT GETDATE(),
     [ActualizadoPor] INT NULL,
     CONSTRAINT [FK_AccesoInstalacion_Usuario] FOREIGN KEY ([UsuarioId]) REFERENCES [Seg].[Usuario]([UsuarioId]),
     CONSTRAINT [FK_AccesoInstalacion_Instalacion] FOREIGN KEY ([InstalacionId]) REFERENCES [Org].[Instalacion]([InstalacionId]),
-    CONSTRAINT [FK_AccesoInstalacion_Rol] FOREIGN KEY ([RolId]) REFERENCES [Seg].[Rol]([RolId])
+    CONSTRAINT [FK_AccesoInstalacion_Rol] FOREIGN KEY ([RolId]) REFERENCES [Seg].[Rol]([RolId]),
+    CONSTRAINT [UX_AccesoInstalacion_Usuario_Instalacion] UNIQUE ([UsuarioId], [InstalacionId])
 );
 GO
 

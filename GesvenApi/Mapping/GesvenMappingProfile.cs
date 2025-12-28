@@ -1,8 +1,10 @@
 using AutoMapper;
 using GesvenApi.Models.Compras;
 using GesvenApi.Models.Dtos.Responses;
+using GesvenApi.Models.Dtos.Responses.Seguridad;
 using GesvenApi.Models.Inventario;
 using GesvenApi.Models.Organizacion;
+using GesvenApi.Models.Seguridad;
 using GesvenApi.Models.Ventas;
 
 namespace GesvenApi.Mapping;
@@ -63,5 +65,8 @@ public class GesvenMappingProfile : Profile
             .ForMember(dest => dest.Descripcion, opt => opt.MapFrom(src => src.Tipo.ToLower() == "almacen"
                 ? $"Almacén de {src.Sucursal!.Empresa!.Nombre} en {src.Sucursal.Nombre}. Productos: refrescos y snacks."
                 : $"Oficinas de {src.Sucursal!.Empresa!.Nombre} en {src.Sucursal.Nombre}. Productos: papelería y consumibles."));
+
+        CreateMap<Usuario, UsuarioDto>();
+        CreateMap<Rol, RolDto>();
     }
 }

@@ -5,6 +5,7 @@ using GesvenApi.Models.Inventario;
 using GesvenApi.Models.Organizacion;
 using GesvenApi.Models.Seguridad;
 using GesvenApi.Models.Ventas;
+using GesvenApi.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using static GesvenApi.ConstantesGesven;
 
@@ -15,8 +16,12 @@ namespace GesvenApi.Data;
 /// </summary>
 public class GesvenDbContext : DbContext
 {
-    public GesvenDbContext(DbContextOptions<GesvenDbContext> options) : base(options)
+    private readonly IUsuarioActualService? _usuarioActualService;
+
+    public GesvenDbContext(DbContextOptions<GesvenDbContext> options, IUsuarioActualService? usuarioActualService = null)
+        : base(options)
     {
+        _usuarioActualService = usuarioActualService;
     }
 
     // Tablas de Auditoría
@@ -82,20 +87,21 @@ public class GesvenDbContext : DbContext
     private void AplicarAuditoria()
     {
         var ahora = DateTime.UtcNow;
+        var usuarioId = _usuarioActualService?.ObtenerUsuarioId() ?? UsuarioSistemaId;
 
         foreach (var entrada in ChangeTracker.Entries<EntidadAuditable>())
         {
             if (entrada.State == EntityState.Added)
             {
                 entrada.Entity.CreadoEn = ahora;
-                entrada.Entity.CreadoPor = UsuarioSistemaId;
+                entrada.Entity.CreadoPor = usuarioId;
                 entrada.Entity.ActualizadoEn = ahora;
-                entrada.Entity.ActualizadoPor = UsuarioSistemaId;
+                entrada.Entity.ActualizadoPor = usuarioId;
             }
             else if (entrada.State == EntityState.Modified)
             {
                 entrada.Entity.ActualizadoEn = ahora;
-                entrada.Entity.ActualizadoPor = UsuarioSistemaId;
+                entrada.Entity.ActualizadoPor = usuarioId;
             }
         }
     }

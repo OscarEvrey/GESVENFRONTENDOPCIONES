@@ -29,6 +29,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddGesvenServices(this IServiceCollection services)
     {
         services.AddScoped<IEstatusLookupService, EstatusLookupService>();
+        services.AddScoped<IUsuarioActualService, UsuarioActualService>();
         return services;
     }
 }

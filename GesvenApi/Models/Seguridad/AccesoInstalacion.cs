@@ -42,5 +42,21 @@ public class AccesoInstalacion : EntidadAuditable
     /// Navegación al rol.
     /// </summary>
     public Rol? Rol { get; set; }
+
+    /// <summary>
+    /// Indica si el acceso está activo.
+    /// </summary>
+    public bool EsActivo { get; set; } = true;
+
+    /// <summary>
+    /// Permisos por módulo (granular, por acceso).
+    /// </summary>
+    public bool PermisoCompras { get; set; }
+    public bool PermisoVentas { get; set; }
+    public bool PermisoInventario { get; set; }
+    public bool PermisoFacturacion { get; set; }
+    public bool PermisoPagos { get; set; }
+    public bool PermisoAuditoria { get; set; }
+    public bool PermisoCatalogos { get; set; }
 }
 

@@ -85,13 +85,56 @@ BEGIN
         UsuarioId INT NOT NULL,
         InstalacionId INT NOT NULL,
         RolId INT NOT NULL,
+        EsActivo BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_EsActivo DEFAULT 1,
+        PermisoCompras BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoCompras DEFAULT 0,
+        PermisoVentas BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoVentas DEFAULT 0,
+        PermisoInventario BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoInventario DEFAULT 0,
+        PermisoFacturacion BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoFacturacion DEFAULT 0,
+        PermisoPagos BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoPagos DEFAULT 0,
+        PermisoAuditoria BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoAuditoria DEFAULT 0,
+        PermisoCatalogos BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoCatalogos DEFAULT 0,
         CreadoEn DATETIME2 NOT NULL,
         CreadoPor INT NULL,
         ActualizadoEn DATETIME2 NOT NULL,
         ActualizadoPor INT NULL
     );
 END
+ELSE
+BEGIN
+    IF COL_LENGTH('Seg.AccesoInstalacion', 'EsActivo') IS NULL
+        ALTER TABLE Seg.AccesoInstalacion ADD EsActivo BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_EsActivo DEFAULT 1;
+
+    IF COL_LENGTH('Seg.AccesoInstalacion', 'PermisoCompras') IS NULL
+        ALTER TABLE Seg.AccesoInstalacion ADD PermisoCompras BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoCompras DEFAULT 0;
+
+    IF COL_LENGTH('Seg.AccesoInstalacion', 'PermisoVentas') IS NULL
+        ALTER TABLE Seg.AccesoInstalacion ADD PermisoVentas BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoVentas DEFAULT 0;
+
+    IF COL_LENGTH('Seg.AccesoInstalacion', 'PermisoInventario') IS NULL
+        ALTER TABLE Seg.AccesoInstalacion ADD PermisoInventario BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoInventario DEFAULT 0;
+
+    IF COL_LENGTH('Seg.AccesoInstalacion', 'PermisoFacturacion') IS NULL
+        ALTER TABLE Seg.AccesoInstalacion ADD PermisoFacturacion BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoFacturacion DEFAULT 0;
+
+    IF COL_LENGTH('Seg.AccesoInstalacion', 'PermisoPagos') IS NULL
+        ALTER TABLE Seg.AccesoInstalacion ADD PermisoPagos BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoPagos DEFAULT 0;
+
+    IF COL_LENGTH('Seg.AccesoInstalacion', 'PermisoAuditoria') IS NULL
+        ALTER TABLE Seg.AccesoInstalacion ADD PermisoAuditoria BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoAuditoria DEFAULT 0;
+
+    IF COL_LENGTH('Seg.AccesoInstalacion', 'PermisoCatalogos') IS NULL
+        ALTER TABLE Seg.AccesoInstalacion ADD PermisoCatalogos BIT NOT NULL CONSTRAINT DF_AccesoInstalacion_PermisoCatalogos DEFAULT 0;
+END
 GO
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE object_id = OBJECT_ID('Seg.AccesoInstalacion')
+      AND name = 'UX_AccesoInstalacion_Usuario_Instalacion'
+)
+    CREATE UNIQUE INDEX UX_AccesoInstalacion_Usuario_Instalacion ON Seg.AccesoInstalacion(UsuarioId, InstalacionId);
+
 
 -- ===========================================================================
 -- TABLAS DE ORGANIZACIÓN

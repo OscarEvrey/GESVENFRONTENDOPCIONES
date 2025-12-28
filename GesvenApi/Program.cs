@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpContextAccessor();
+
 // Obtener cadena de conexión desde configuración.
 var connectionString = builder.Configuration.GetConnectionString("GesvenDb");
 if (string.IsNullOrWhiteSpace(connectionString))
