@@ -16,7 +16,7 @@ import {
 } from '../../context/ContextoInstalacion';
 
 export function SelectorInstalacionPage() {
-  const { instalaciones, cargandoInstalaciones, errorInstalaciones, seleccionarInstalacion } = useContextoInstalacion();
+  const { instalaciones, cargandoInstalaciones, errorInstalaciones, seleccionarInstalacion, instalacionActiva } = useContextoInstalacion();
   const navigate = useNavigate();
 
   const handleSeleccionar = (instalacion: Instalacion) => {
@@ -42,26 +42,28 @@ export function SelectorInstalacionPage() {
   };
 
   return (
-    <div className="container-fluid">
-      <div className="grid gap-6">
+    <div className="w-full mx-auto px-4">
+      <div className="flex flex-col gap-8">
         {/* Encabezado */}
-        <div className="text-center py-8">
-          <div className="flex justify-center mb-4">
-            <div className="p-4 bg-primary/10 rounded-full">
-              <Package className="size-12 text-primary" />
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="p-5 bg-primary/10 rounded-2xl shadow-sm">
+              <Package className="size-14 text-primary" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold mb-2">
-            Seleccionar Instalación
-          </h1>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            Seleccione la instalación con la que desea trabajar. El inventario y
-            las operaciones se filtrarán según su selección.
-          </p>
+          <div className="space-y-2">
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900">
+              Seleccionar Instalación
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Seleccione la instalación con la que desea trabajar. El inventario y
+              las operaciones se filtrarán según su selección.
+            </p>
+          </div>
         </div>
 
         {/* Cuadrícula de Instalaciones */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {cargandoInstalaciones ? (
             <div className="col-span-full text-center text-sm text-muted-foreground">
               Cargando instalaciones...
@@ -140,8 +142,9 @@ export function SelectorInstalacionPage() {
         {/* Información adicional */}
         <div className="mt-6 p-4 bg-muted/50 rounded-lg border text-center">
           <p className="text-sm text-muted-foreground">
-            <strong>Usuario ID:</strong> 1 • Puede cambiar de instalación en
-            cualquier momento desde el encabezado de la aplicación.
+            <strong>Usuario ID:</strong> 1 • {instalacionActiva 
+              ? 'Puede cambiar de instalación en cualquier momento desde el encabezado.' 
+              : 'Seleccione una instalación para comenzar a trabajar.'}
           </p>
           <p className="text-xs text-muted-foreground mt-2">
             Las instalaciones se obtienen desde el backend según permisos.

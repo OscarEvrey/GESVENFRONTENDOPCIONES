@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ContextoInstalacionProvider } from './context/ContextoInstalacion';
 import { ContextoOrdenesCompraProvider } from './context/ContextoOrdenesCompra';
 import { DefaultLayout } from './layout';
+import { SelectorLayout } from './layout/SelectorLayout';
 import { LayoutProtegido } from './layout/LayoutProtegido';
 import { AllStock } from './pages/todo-el-stock/page';
 import { CategoryDetails } from './pages/detalles-categoria/page';
@@ -132,7 +133,7 @@ export default function TiendaInventarioModule({ routeType = 'main' }: TiendaInv
         <Routes>
           {/* Ruta raíz para selector-instalacion (cuando routeType === 'selector') */}
           {routeType === 'selector' && (
-            <Route element={<DefaultLayout />}>
+            <Route element={<SelectorLayout />}>
               <Route index element={<SelectorInstalacionPage />} />
               <Route path="*" element={<Navigate to="." replace />} />
             </Route>
@@ -141,9 +142,11 @@ export default function TiendaInventarioModule({ routeType = 'main' }: TiendaInv
           {/* Rutas de Librería de Prototipos Gesven (acceso solo por URL directa) */}
           {routeType === 'libreria' && (
             <Route element={<DefaultLayout />}>
-              {renderRoutes(libreriaRoutes)}
-              <Route index element={<Navigate to="tablas-maestras" replace />} />
-              <Route path="*" element={<Navigate to="tablas-maestras" replace />} />
+              <Route element={<LayoutProtegido />}>
+                {renderRoutes(libreriaRoutes)}
+                <Route index element={<Navigate to="tablas-maestras" replace />} />
+                <Route path="*" element={<Navigate to="tablas-maestras" replace />} />
+              </Route>
             </Route>
           )}
 
