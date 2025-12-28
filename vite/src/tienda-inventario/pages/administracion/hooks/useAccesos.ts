@@ -18,6 +18,12 @@ export function useAccesos() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mostrarInactivos, setMostrarInactivos] = useState(true);
+  const [rolFiltro, setRolFiltro] = useState<number>(0);
+  const [usuarioFiltro, setUsuarioFiltro] = useState<number>(0);
+  const [busqueda, setBusqueda] = useState<string>('');
+  const [pagina, setPagina] = useState<number>(1);
+  const [tamanoPagina, setTamanoPagina] = useState<number>(10);
+  const [totalCount, setTotalCount] = useState<number>(0);
 
   const cargarDatos = useCallback(async () => {
     if (!instalacionActiva) return;
@@ -25,13 +31,22 @@ export function useAccesos() {
       setCargando(true);
       setError(null);
 
-      const [listaAccesos, listaRoles, listaUsuarios] = await Promise.all([
-        securityService.obtenerAccesos(instalacionActiva.instalacionId, undefined, mostrarInactivos),
+      const [resultAccesos, listaRoles, listaUsuarios] = await Promise.all([
+        securityService.obtenerAccesos(
+          instalacionActiva.instalacionId,
+          usuarioFiltro || undefined,
+          mostrarInactivos,
+          rolFiltro || undefined,
+          pagina,
+          tamanoPagina,
+          busqueda || undefined,
+        ),
         securityService.obtenerRoles(),
         securityService.obtenerUsuarios()
       ]);
 
-      setAccesos(listaAccesos);
+      setAccesos(resultAccesos.items);
+      setTotalCount(resultAccesos.totalCount);
       setRoles(listaRoles.filter((r) => r.esActivo));
       setUsuarios(listaUsuarios);
     } catch {
@@ -39,7 +54,7 @@ export function useAccesos() {
     } finally {
       setCargando(false);
     }
-  }, [instalacionActiva, mostrarInactivos]);
+  }, [instalacionActiva, mostrarInactivos, rolFiltro, usuarioFiltro, pagina, tamanoPagina, busqueda]);
 
   useEffect(() => {
     cargarDatos();
@@ -85,6 +100,17 @@ export function useAccesos() {
     revocarAcceso,
     recargar: cargarDatos,
     mostrarInactivos,
-    setMostrarInactivos
+    setMostrarInactivos,
+    rolFiltro,
+    setRolFiltro,
+    usuarioFiltro,
+    setUsuarioFiltro,
+    busqueda,
+    setBusqueda,
+    pagina,
+    setPagina,
+    tamanoPagina,
+    setTamanoPagina,
+    totalCount
   };
 }

@@ -83,11 +83,15 @@ public class AccesosController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(RespuestaApi<List<AccesoInstalacionDto>>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<RespuestaApi<List<AccesoInstalacionDto>>>> ObtenerAccesos(
+    [ProducesResponseType(typeof(RespuestaApi<PagedResultDto<AccesoInstalacionDto>>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<RespuestaApi<PagedResultDto<AccesoInstalacionDto>>>> ObtenerAccesos(
         [FromQuery] int? instalacionId = null,
         [FromQuery] int? usuarioId = null,
-        [FromQuery] bool incluirInactivos = true)
+        [FromQuery] int? rolId = null,
+        [FromQuery] bool incluirInactivos = true,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? q = null)
     {
         try
         {
@@ -99,10 +103,27 @@ public class AccesosController : ControllerBase
 
             if (instalacionId is not null) query = query.Where(a => a.InstalacionId == instalacionId);
             if (usuarioId is not null) query = query.Where(a => a.UsuarioId == usuarioId);
+            if (rolId is not null) query = query.Where(a => a.RolId == rolId);
             if (!incluirInactivos) query = query.Where(a => a.EsActivo);
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim().ToLower();
+                query = query.Where(a =>
+                    (a.Usuario != null && (a.Usuario.NombreCompleto.ToLower().Contains(term) || a.Usuario.Email.ToLower().Contains(term)))
+                    || (a.Rol != null && a.Rol.Nombre.ToLower().Contains(term))
+                );
+            }
+
+            // Pagination metadata
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 20;
+            var totalCount = await query.CountAsync();
 
             var accesos = await query
                 .OrderByDescending(a => a.ActualizadoEn)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(a => new AccesoInstalacionDto
                 {
                     AccesoId = a.AccesoId,
@@ -122,11 +143,19 @@ public class AccesosController : ControllerBase
                 })
                 .ToListAsync();
 
-            return Ok(new RespuestaApi<List<AccesoInstalacionDto>>
+            var paged = new PagedResultDto<AccesoInstalacionDto>
+            {
+                Items = accesos,
+                TotalCount = totalCount,
+                Page = page,
+                PageSize = pageSize
+            };
+
+            return Ok(new RespuestaApi<PagedResultDto<AccesoInstalacionDto>>
             {
                 Exito = true,
                 Mensaje = "Accesos obtenidos exitosamente",
-                Datos = accesos,
+                Datos = paged,
             });
         }
         catch (Exception ex)

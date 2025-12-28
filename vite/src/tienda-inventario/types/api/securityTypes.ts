@@ -72,3 +72,11 @@ export interface ActualizarAccesoInstalacionApiDto {
   rolId: number;
   esActivo: boolean;
 }
+
+// --- Paginación genérica ---
+export interface PagedResultApiDto<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}

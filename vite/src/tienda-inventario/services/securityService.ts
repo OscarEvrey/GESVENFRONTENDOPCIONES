@@ -5,7 +5,8 @@ import type {
   RolSeguridadApiDto,
   AccesoInstalacionApiDto,
   CrearAccesoInstalacionApiDto,
-  ActualizarAccesoInstalacionApiDto
+  ActualizarAccesoInstalacionApiDto,
+  PagedResultApiDto
 } from '../types/api/securityTypes';
 
 export const securityService = {
@@ -25,13 +26,25 @@ export const securityService = {
   },
 
   // --- GESTIÓN DE ACCESOS (CRUD) ---
-  obtenerAccesos: (instalacionId?: number, usuarioId?: number, incluirInactivos?: boolean) => {
+  obtenerAccesos: (
+    instalacionId?: number,
+    usuarioId?: number,
+    incluirInactivos?: boolean,
+    rolId?: number,
+    page?: number,
+    pageSize?: number,
+    q?: string,
+  ) => {
     const params: Record<string, string | number | boolean> = {};
     if (instalacionId) params.instalacionId = instalacionId;
     if (usuarioId) params.usuarioId = usuarioId;
+    if (rolId) params.rolId = rolId;
     if (incluirInactivos !== undefined) params.incluirInactivos = incluirInactivos;
+    if (page) params.page = page;
+    if (pageSize) params.pageSize = pageSize;
+    if (q) params.q = q;
 
-    return apiClient.get<AccesoInstalacionApiDto[]>('/api/accesos', params);
+    return apiClient.get<PagedResultApiDto<AccesoInstalacionApiDto>>('/api/accesos', params);
   },
 
   crearAcceso: (dto: CrearAccesoInstalacionApiDto) => {
