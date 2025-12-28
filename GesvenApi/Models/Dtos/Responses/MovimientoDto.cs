@@ -5,7 +5,7 @@ namespace GesvenApi.Models.Dtos.Responses;
 /// </summary>
 public class MovimientoDto
 {
-    public int MovimientoId { get; set; }
+    public long MovimientoId { get; set; }
     public int InstalacionId { get; set; }
     public int ProductoId { get; set; }
     public string ProductoNombre { get; set; } = string.Empty;

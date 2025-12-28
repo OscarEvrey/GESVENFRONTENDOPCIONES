@@ -33,6 +33,8 @@
 
 **Nota**: No se identificaron endpoints backend para “carga de facturas” o “gestión de pagos”; esas pantallas parecen ser prototipo UI.
 
+**Nota de contrato**: evita asumir que IDs son `int32`. Algunos identificadores pueden venir como `bigint` desde SQL Server (por ejemplo IDs de movimientos generados por ventas).
+
 ## Estado actual (madurez)
 
 - Cliente API para ventas existe.

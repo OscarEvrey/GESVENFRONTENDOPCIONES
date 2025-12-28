@@ -11,6 +11,16 @@ Backend usa un wrapper consistente tipo `RespuestaApi<T>`:
 
 Esto impacta al frontend: debe manejar errores de negocio vs errores HTTP.
 
+## Mapeo de DTOs (AutoMapper)
+
+- El backend centraliza el mapeo Entidad→DTO usando AutoMapper (profiles en `GesvenApi/Mapping/`).
+- Implicación práctica: si se agregan/renombran campos en DTOs de respuesta, se debe actualizar el profile correspondiente para que el campo salga en la API.
+
+## Tipos de IDs (SQL Server)
+
+- No asumir que los IDs son `int32`. Algunos IDs pueden venir como `bigint` desde la BD (por ejemplo `MovimientoId`).
+- En frontend (TypeScript), tratar IDs como `number` y evitar operaciones que dependan de 32 bits (p. ej., bitwise) sobre IDs.
+
 ## Estatus por lookup
 
 - Existe un servicio de lookup de estatus por `(módulo, nombre)` con caching.

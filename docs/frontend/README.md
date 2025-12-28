@@ -13,6 +13,12 @@
 - `vite/src/providers/auth-provider.tsx`: sesión mock en localStorage.
 - `vite/src/tienda-inventario/services/gesvenApi.ts`: envía `X-Gesven-UsuarioId` en requests.
 
+## Contrato API (puntos a tener en cuenta)
+
+- Respuestas: el backend usa un wrapper consistente `RespuestaApi<T>` (`exito`, `mensaje`, `datos`, `errores`).
+- IDs: algunos identificadores pueden provenir como `bigint` desde SQL Server (p. ej. `MovimientoId`), por lo que el frontend no debe asumir `int32`.
+- Evolución de DTOs: el mapeo Entidad→DTO está centralizado en AutoMapper; al integrar pantallas, tomar los DTOs como fuente de verdad del shape.
+
 ## Instalación activa
 
 - `vite/src/tienda-inventario/context/ContextoInstalacion.tsx`:

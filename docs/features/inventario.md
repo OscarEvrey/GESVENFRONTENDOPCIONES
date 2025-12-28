@@ -46,6 +46,8 @@ Inventario se modela como un **ledger**: cada operación crea **movimientos** qu
 
 - `GET /api/movimientos?instalacionId=...&desde=...&hasta=...` (según implementación)
 
+**Nota de contrato**: `MovimientoId` proviene de SQL Server como `bigint` (en el backend se modela como `long`). En frontend, tratarlo como `number` y no asumir límites de `int32`.
+
 ### Ajustes
 
 - `GET /api/ajustes?instalacionId=...`

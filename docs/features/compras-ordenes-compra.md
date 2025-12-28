@@ -44,6 +44,8 @@ Gestiona el ciclo de vida de una **Orden de Compra (OC)**:
 - `POST /api/compras/ordenes/{id}/rechazar`
 - `POST /api/compras/ordenes/{id}/recibir`
 
+**Nota de contrato**: evita asumir que IDs son `int32`. Algunos identificadores pueden venir como `bigint` desde SQL Server (por ejemplo IDs de movimientos asociados a recepción).
+
 ## Estado actual (madurez)
 
 - Crear OC: **integrado** vía `useCrearOrdenCompra`.

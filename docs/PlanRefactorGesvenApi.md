@@ -7,6 +7,13 @@
 
 Necesito refactorizar mi backend **GesvenApi** (ASP.NET Core) del repositorio `GESVENFRONTENDOPCIONES` siguiendo las mejores prácticas de . NET y arquitectura limpia.
 
+## ✅ Estado actual en este repo (antes de continuar)
+
+- AutoMapper: ya está aplicado para el mapeo Entidad→DTO en varios endpoints/controllers mediante profiles en `GesvenApi/Mapping/`.
+- Contrato relevante para frontend: `MovimientoId` está alineado a SQL Server `bigint` (en C# se modela como `long`), así que evitar suposiciones de `int32` en consumidores.
+
+El resto de este documento sigue siendo un plan/prompt de refactor mayor (Clean Architecture, capas, renombrados, etc.).
+
 ---
 
 ## 🎯 Objetivo Principal

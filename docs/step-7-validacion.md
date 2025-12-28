@@ -10,6 +10,7 @@
 ### API conventions
 
 - Standard response wrapper: `RespuestaApi<T>` with `Exito`, `Mensaje`, `Datos`, `Errores`. See [GesvenApi/DTOs/DTOs.cs](../GesvenApi/DTOs/DTOs.cs).
+- DTO mapping: controllers centralize entity→DTO mapping via AutoMapper profiles (see `GesvenApi/Mapping/`), frequently using query projections to keep list endpoints consistent.
 - Infrastructure: EF Core SQL Server configured with retry, CORS policy for frontend, OpenAPI in dev. See [GesvenApi/Program.cs](../GesvenApi/Program.cs).
 
 ### Status (Estatus) normalization
@@ -26,6 +27,8 @@
   - transfers (origin exit + destination entry on reception),
   - physical adjustments (entry/exit).
 - Core entities: `Producto`, `Movimiento`, `AjusteInventario`, `Transferencia`, `TransferenciaDetalle` in [GesvenApi/Modelos/Inventario/](../GesvenApi/Modelos/Inventario/).
+
+**Contract note:** `MovimientoId` is backed by SQL Server `bigint` (modeled as `long` in the backend). Clients should not assume 32-bit integer ranges for movement identifiers.
 
 ### Core business workflows (backend)
 
