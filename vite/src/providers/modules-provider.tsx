@@ -9,7 +9,7 @@ export function ModulesProvider() {
     <Routes>
       {/* Rutas principales del sistema Gesven */}
       <Route
-        path="/selector-instalacion"
+        path="/selector-instalacion/*"
         element={
           <Suspense fallback={<ScreenLoader />}>
             <LazyTiendaInventarioModule routeType="selector" />

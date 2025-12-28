@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ContextoInstalacionProvider } from './context/ContextoInstalacion';
+import { ContextoMenuProvider } from './context/ContextoMenu';
 import { ContextoOrdenesCompraProvider } from './context/ContextoOrdenesCompra';
 import { DefaultLayout } from './layout';
 import { SelectorLayout } from './layout/SelectorLayout';
@@ -129,40 +130,42 @@ function renderRoutes(config: RouteConfig[]) {
 export default function TiendaInventarioModule({ routeType = 'main' }: TiendaInventarioModuleProps) {
   return (
     <ContextoInstalacionProvider>
-      <ContextoOrdenesCompraProvider>
-        <Routes>
-          {/* Ruta raíz para selector-instalacion (cuando routeType === 'selector') */}
-          {routeType === 'selector' && (
-            <Route element={<SelectorLayout />}>
-              <Route index element={<SelectorInstalacionPage />} />
-              <Route path="*" element={<Navigate to="." replace />} />
-            </Route>
-          )}
-          
-          {/* Rutas de Librería de Prototipos Gesven (acceso solo por URL directa) */}
-          {routeType === 'libreria' && (
-            <Route element={<DefaultLayout />}>
-              <Route element={<LayoutProtegido />}>
-                {renderRoutes(libreriaRoutes)}
-                <Route index element={<Navigate to="tablas-maestras" replace />} />
-                <Route path="*" element={<Navigate to="tablas-maestras" replace />} />
+      <ContextoMenuProvider>
+        <ContextoOrdenesCompraProvider>
+          <Routes>
+            {/* Ruta raíz para selector-instalacion (cuando routeType === 'selector') */}
+            {routeType === 'selector' && (
+              <Route element={<SelectorLayout />}>
+                <Route index element={<SelectorInstalacionPage />} />
+                <Route path="*" element={<Navigate to="." replace />} />
               </Route>
-            </Route>
-          )}
-
-          {/* Rutas principales del sistema Gesven */}
-          {routeType === 'main' && (
-            <Route element={<DefaultLayout />}>
-              <Route index element={<Navigate to="/selector-instalacion" replace />} />
-
-              <Route element={<LayoutProtegido />}>
-                {renderRoutes(protectedRoutes)}
-                <Route path="*" element={<Navigate to="/selector-instalacion" replace />} />
+            )}
+            
+            {/* Rutas de Librería de Prototipos Gesven (acceso solo por URL directa) */}
+            {routeType === 'libreria' && (
+              <Route element={<DefaultLayout />}>
+                <Route element={<LayoutProtegido />}>
+                  {renderRoutes(libreriaRoutes)}
+                  <Route index element={<Navigate to="tablas-maestras" replace />} />
+                  <Route path="*" element={<Navigate to="tablas-maestras" replace />} />
+                </Route>
               </Route>
-            </Route>
-          )}
-        </Routes>
-      </ContextoOrdenesCompraProvider>
+            )}
+
+            {/* Rutas principales del sistema Gesven */}
+            {routeType === 'main' && (
+              <Route element={<DefaultLayout />}>
+                <Route index element={<Navigate to="/selector-instalacion" replace />} />
+
+                <Route element={<LayoutProtegido />}>
+                  {renderRoutes(protectedRoutes)}
+                  <Route path="*" element={<Navigate to="/selector-instalacion" replace />} />
+                </Route>
+              </Route>
+            )}
+          </Routes>
+        </ContextoOrdenesCompraProvider>
+      </ContextoMenuProvider>
     </ContextoInstalacionProvider>
   );
 }

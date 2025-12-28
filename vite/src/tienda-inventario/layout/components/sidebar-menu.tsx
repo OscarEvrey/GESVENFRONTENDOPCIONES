@@ -1,244 +1,235 @@
 'use client';
 
-import { JSX, useCallback } from 'react';
-import { MENU_SIDEBAR } from '@/tienda-inventario/config/app.config';
-import { MenuConfig, MenuItem } from '@/tienda-inventario/config/types';
-import { Link, useLocation } from 'react-router-dom';
+import { JSX, useCallback, useMemo } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { icons, Loader2, LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Contexto del Menú Dinámico
+import { useContextoMenu } from '@/tienda-inventario/context/ContextoMenu';
+
+// Tipos del API de seguridad
+import type { ModuloApiDto } from '@/tienda-inventario/types/api/securityTypes';
+
+// Componentes UI
 import {
   AccordionMenu,
   AccordionMenuClassNames,
   AccordionMenuGroup,
   AccordionMenuItem,
   AccordionMenuLabel,
+  AccordionMenuSeparator,
   AccordionMenuSub,
   AccordionMenuSubContent,
   AccordionMenuSubTrigger,
 } from '@/components/ui/accordion-menu';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-export function SidebarMenu() {
-  const { pathname } = useLocation();
+// ============ UTILIDADES ============
 
-  // Memoize matchPath to prevent unnecessary re-renders
+/**
+ * Obtiene el componente de icono de Lucide por nombre
+ */
+function getIconComponent(iconName: string | null): LucideIcon | null {
+  if (!iconName) return null;
+  const IconComponent = icons[iconName as keyof typeof icons];
+  return IconComponent || null;
+}
+
+/**
+ * Construye la ruta completa para un módulo
+ */
+function buildPath(ruta: string | null): string {
+  if (!ruta) return '#';
+  return ruta.startsWith('/') ? ruta : `/${ruta}`;
+}
+
+function buildPathByValue(menu: ModuloApiDto[]): Map<string, string> {
+  const map = new Map<string, string>();
+
+  const walk = (nodes: ModuloApiDto[]) => {
+    for (const node of nodes) {
+      map.set(String(node.moduloId), buildPath(node.ruta));
+      if (node.hijos && node.hijos.length > 0) {
+        walk(node.hijos);
+      }
+    }
+  };
+
+  walk(menu);
+  return map;
+}
+
+// ============ ESTILOS ============
+
+const sidebarMenuClassNames: AccordionMenuClassNames = {
+  root: 'space-y-1',
+  group: 'space-y-1 mb-5',
+  label: 'uppercase text-muted-foreground font-medium text-2sm px-2.5 py-2',
+  separator: '-mx-2 mb-2.5',
+  item: 'menu-item',
+  sub: 'menu-accordion',
+  subTrigger:
+    'menu-link grow cursor-pointer border-0 bg-transparent flex items-center justify-between gap-2 py-2.5 px-2.5 rounded-md text-foreground hover:bg-muted/50',
+  subContent: 'menu-accordion-content ps-2.5',
+  indicator: 'menu-arrow w-4 h-4 transition-transform duration-200',
+};
+
+// ============ COMPONENTE PRINCIPAL ============
+
+export function SidebarMenu(): JSX.Element {
+  const { menu, cargandoMenu } = useContextoMenu();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const pathByValue = useMemo(() => buildPathByValue(menu ?? []), [menu]);
+
+  /**
+   * Verifica si una ruta coincide con la ubicación actual
+   */
   const matchPath = useCallback(
-    (path: string): boolean => {
-      // Exact match
-      if (path === pathname) {
-        return true;
-      }
-      
-      // Don't match root path
-      if (path === '/tienda-inventario') {
-        return false;
-      }
-      
-      // For paths longer than 1 character, check if pathname starts with path
-      // but ensure it's followed by a slash or end of string to avoid partial matches
-      if (path.length > 1) {
-        const pathWithSlash = path + '/';
-        return pathname.startsWith(pathWithSlash) || pathname === path;
-      }
-      
-      return false;
+    (valueOrHref: string): boolean => {
+      if (!valueOrHref || valueOrHref === '#') return false;
+
+      // El template a veces llama matchPath con el "value" del item (ej: "23"),
+      // así que resolvemos value -> ruta usando el mapa.
+      const resolvedPath = valueOrHref.startsWith('/')
+        ? valueOrHref
+        : pathByValue.get(valueOrHref);
+
+      if (!resolvedPath || resolvedPath === '#') return false;
+      return (
+        location.pathname === resolvedPath ||
+        location.pathname.startsWith(resolvedPath + '/')
+      );
     },
-    [pathname],
+    [location.pathname, pathByValue]
   );
 
-  // Global classNames for consistent styling
-  const classNames: AccordionMenuClassNames = {
-    root: 'lg:ps-1 space-y-3',
-    group: 'gap-px',
-    label:
-      'uppercase text-xs font-medium text-muted-foreground/70 pt-2.25 pb-px',
-    separator: '',
-    item: 'h-8 hover:bg-transparent text-accent-foreground hover:text-primary data-[selected=true]:text-primary data-[selected=true]:bg-muted data-[selected=true]:font-medium',
-    sub: '',
-    subTrigger:
-      'h-8 hover:bg-transparent text-accent-foreground hover:text-primary data-[selected=true]:text-primary data-[selected=true]:bg-muted data-[selected=true]:font-medium',
-    subContent: 'py-0',
-    indicator: '',
-  };
+  const onMenuItemClick = useCallback(
+    (value: string) => {
+      const path = pathByValue.get(value);
+      if (!path || path === '#') return;
+      navigate(path);
+    },
+    [navigate, pathByValue]
+  );
 
-  const buildMenu = (items: MenuConfig): JSX.Element[] => {
-    return items.map((item: MenuItem, index: number) => {
-      if (item.heading) {
-        return buildMenuHeading(item, index);
-      } else if (item.disabled) {
-        return buildMenuItemRootDisabled(item, index);
-      } else {
-        return buildMenuItemRoot(item, index);
-      }
-    });
-  };
+  /**
+   * Renderiza un item de menú individual (sin hijos)
+   */
+  const renderMenuItem = useCallback(
+    (modulo: ModuloApiDto): JSX.Element => {
+      const Icon = getIconComponent(modulo.icono);
+      const path = buildPath(modulo.ruta);
+      const value = String(modulo.moduloId);
+      const isActive = matchPath(value);
 
-  const buildMenuItemRoot = (item: MenuItem, index: number): JSX.Element => {
-    if (item.children) {
       return (
-        <AccordionMenuSub key={index} value={item.path || `root-${index}`}>
-          <AccordionMenuSubTrigger className="text-sm font-medium">
-            {item.icon && <item.icon data-slot="accordion-menu-icon" />}
-            <span data-slot="accordion-menu-title">{item.title}</span>
-          </AccordionMenuSubTrigger>
-          <AccordionMenuSubContent
-            type="single"
-            collapsible
-            parentValue={item.path || `root-${index}`}
-            className="ps-6"
-          >
-            <AccordionMenuGroup>
-              {buildMenuItemChildren(item.children, 1)}
-            </AccordionMenuGroup>
-          </AccordionMenuSubContent>
-        </AccordionMenuSub>
-      );
-    } else {
-      return (
-        <AccordionMenuItem
-          key={index}
-          value={item.path || ''}
-          className="text-sm font-medium"
-        >
-          <Link
-            to={item.path || '#'}
-            className="flex items-center justify-between grow gap-2"
-          >
-            {item.icon && <item.icon data-slot="accordion-menu-icon" />}
-            <span data-slot="accordion-menu-title">{item.title}</span>
-          </Link>
+        <AccordionMenuItem key={modulo.moduloId} value={value} asChild>
+          {path === '#' ? (
+            <div
+              className={cn(
+                'menu-link flex items-center gap-2.5 py-2.5 px-2.5 rounded-md text-muted-foreground cursor-not-allowed',
+                isActive && 'bg-muted text-primary font-medium'
+              )}
+            >
+              {Icon && <Icon className="h-4 w-4 shrink-0" />}
+              <span className="menu-title text-sm grow">{modulo.nombre}</span>
+            </div>
+          ) : (
+            <Link
+              to={path}
+              className={cn(
+                'menu-link flex items-center gap-2.5 py-2.5 px-2.5 rounded-md text-foreground hover:bg-muted/50 transition-colors',
+                isActive && 'bg-muted text-primary font-medium'
+              )}
+            >
+              {Icon && <Icon className="h-4 w-4 shrink-0" />}
+              <span className="menu-title text-sm grow">{modulo.nombre}</span>
+              {modulo.estadoDesarrollo === 'EnDesarrollo' && (
+                <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                  Dev
+                </span>
+              )}
+            </Link>
+          )}
         </AccordionMenuItem>
       );
-    }
-  };
+    },
+    [matchPath]
+  );
 
-  const buildMenuItemRootDisabled = (
-    item: MenuItem,
-    index: number,
-  ): JSX.Element => {
-    return (
-      <AccordionMenuItem
-        key={index}
-        value={`disabled-${index}`}
-        className="text-sm font-medium pointer-events-none"
-      >
-        {item.icon && <item.icon data-slot="accordion-menu-icon" />}
-        <span data-slot="accordion-menu-title">{item.title}</span>
-        {item.disabled && (
-          <Badge variant="secondary" size="sm" className="ms-auto">
-            Coding now
-          </Badge>
-        )}
-      </AccordionMenuItem>
-    );
-  };
+  /**
+   * Renderiza un submenú (módulo con hijos)
+   */
+  const renderSubMenu = useCallback(
+    (modulo: ModuloApiDto): JSX.Element => {
+      const Icon = getIconComponent(modulo.icono);
+      const hijos = modulo.hijos || [];
 
-  const buildMenuItemChildren = (
-    items: MenuConfig,
-    level: number = 0,
-  ): JSX.Element[] => {
-    return items.map((item: MenuItem, index: number) => {
-      if (item.disabled) {
-        return buildMenuItemChildDisabled(item, index, level);
-      } else {
-        return buildMenuItemChild(item, index, level);
-      }
-    });
-  };
-
-  const buildMenuItemChild = (
-    item: MenuItem,
-    index: number,
-    level: number = 0,
-  ): JSX.Element => {
-    if (item.children) {
       return (
         <AccordionMenuSub
-          key={index}
-          value={item.path || `child-${level}-${index}`}
+          key={modulo.moduloId}
+          value={String(modulo.moduloId)}
         >
-          <AccordionMenuSubTrigger className="text-[13px]">
-            {item.collapse ? (
-              <span className="text-muted-foreground">
-                <span className="hidden [[data-state=open]>span>&]:inline">
-                  {item.collapseTitle}
-                </span>
-                <span className="inline [[data-state=open]>span>&]:hidden">
-                  {item.expandTitle}
-                </span>
-              </span>
-            ) : (
-              item.title
-            )}
+          <AccordionMenuSubTrigger>
+            {Icon && <Icon className="h-4 w-4 shrink-0" />}
+            <span className="menu-title text-sm grow">{modulo.nombre}</span>
           </AccordionMenuSubTrigger>
-          <AccordionMenuSubContent
-            type="single"
-            collapsible
-            parentValue={item.path || `child-${level}-${index}`}
-            className={cn(
-              'ps-4',
-              !item.collapse && 'relative',
-              !item.collapse && (level > 0 ? '' : ''),
+          <AccordionMenuSubContent type="multiple" parentValue={String(modulo.moduloId)}>
+            {hijos.map((hijo) =>
+              hijo.hijos && hijo.hijos.length > 0
+                ? renderSubMenu(hijo)
+                : renderMenuItem(hijo)
             )}
-          >
-            <AccordionMenuGroup>
-              {buildMenuItemChildren(
-                item.children,
-                item.collapse ? level : level + 1,
-              )}
-            </AccordionMenuGroup>
           </AccordionMenuSubContent>
         </AccordionMenuSub>
       );
-    } else {
-      return (
-        <AccordionMenuItem
-          key={index}
-          value={item.path || ''}
-          className="text-[13px]"
-        >
-          <Link to={item.path || '#'}>{item.title}</Link>
-        </AccordionMenuItem>
-      );
-    }
-  };
+    },
+    [renderMenuItem]
+  );
 
-  const buildMenuItemChildDisabled = (
-    item: MenuItem,
-    index: number,
-    level: number = 0,
-  ): JSX.Element => {
+  const menuAgrupado = useMemo(() => menu, [menu]);
+
+  if (cargandoMenu) {
     return (
-      <AccordionMenuItem
-        key={index}
-        value={`disabled-child-${level}-${index}`}
-        className="text-[13px] pointer-events-none"
-      >
-        <span data-slot="accordion-menu-title">{item.title}</span>
-        {item.disabled && (
-          <Badge variant="secondary" size="sm" className="ms-auto">
-            Coding now
-          </Badge>
-        )}
-      </AccordionMenuItem>
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-sm text-muted-foreground">Cargando menú...</span>
+      </div>
     );
-  };
+  }
 
-  const buildMenuHeading = (item: MenuItem, index: number): JSX.Element => {
-    return <AccordionMenuLabel key={index}>{item.heading}</AccordionMenuLabel>;
-  };
+  if (!menu || menu.length === 0) {
+    return (
+      <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+        No hay módulos disponibles para tu rol.
+      </div>
+    );
+  }
 
   return (
-    <ScrollArea className="flex grow shrink-0 py-5 px-5 lg:h-[calc(100vh-5.5rem)]">
+    <ScrollArea className="h-[calc(100vh-200px)]">
       <AccordionMenu
-        selectedValue={pathname}
+        type="multiple"
+        classNames={sidebarMenuClassNames}
         matchPath={matchPath}
-        type="single"
-        collapsible
-        classNames={classNames}
+        onItemClick={(value) => onMenuItemClick(value)}
       >
-        {buildMenu(MENU_SIDEBAR)}
+        <AccordionMenuGroup>
+          <AccordionMenuLabel>Menú Principal</AccordionMenuLabel>
+          <AccordionMenuSeparator />
+          {menuAgrupado.map((modulo) =>
+            modulo.hijos && modulo.hijos.length > 0
+              ? renderSubMenu(modulo)
+              : renderMenuItem(modulo)
+          )}
+        </AccordionMenuGroup>
       </AccordionMenu>
+      <ScrollBar />
     </ScrollArea>
   );
 }
+
+export default SidebarMenu;

@@ -17,12 +17,12 @@ public class AccesoInstalacionConfiguration : IEntityTypeConfiguration<AccesoIns
 
         // Relaciones
         builder.HasOne(a => a.Usuario)
-            .WithMany() // Asumiendo que Usuario no tiene lista de Accesos, si tiene pon .WithMany(u => u.Accesos)
+            .WithMany(u => u.Accesos)
             .HasForeignKey(a => a.UsuarioId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(a => a.Instalacion)
-            .WithMany()
+            .WithMany(i => i.Accesos)
             .HasForeignKey(a => a.InstalacionId)
             .OnDelete(DeleteBehavior.Restrict);
 

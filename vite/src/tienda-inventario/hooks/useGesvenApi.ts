@@ -1,12 +1,18 @@
-import { useEffect, useState } from 'react';
-import gesvenApi, { 
-  InstalacionApiDto, 
-  ProductoInventarioApiDto,
-  ProveedorApiDto,
-  ProductoSimpleApiDto,
-  CrearOrdenCompraDto,
-  OrdenCompraRespuestaDto
-} from '../services/gesvenApi';
+import { useEffect, useState, useCallback } from 'react';
+// Importamos la instancia unificada desde el archivo barril
+import gesvenApi from '../services'; 
+
+// Importamos los tipos desde la nueva estructura modular
+import type { InstalacionApiDto } from '../types/api/commonTypes';
+import type { 
+  ProductoInventarioApiDto, 
+  ProductoSimpleApiDto 
+} from '../types/api/inventoryTypes';
+import type { 
+  ProveedorApiDto, 
+  CrearOrdenCompraDto, 
+  OrdenCompraRespuestaDto 
+} from '../types/api/purchasingTypes';
 
 /**
  * Hook para obtener las instalaciones desde la API
@@ -56,55 +62,29 @@ export function useInventarioApi(instalacionId: number | null) {
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const cargarInventario = useCallback(async () => {
     if (!instalacionId) {
       setProductos([]);
       return;
     }
 
-    let cancelado = false;
-
-    async function cargarInventario() {
-      try {
-        setCargando(true);
-        setError(null);
-        const datos = await gesvenApi.obtenerInventario(instalacionId);
-        if (!cancelado) {
-          setProductos(datos);
-        }
-      } catch (err) {
-        if (!cancelado) {
-          setError(err instanceof Error ? err.message : 'Error desconocido');
-        }
-      } finally {
-        if (!cancelado) {
-          setCargando(false);
-        }
-      }
-    }
-
-    cargarInventario();
-
-    return () => {
-      cancelado = true;
-    };
-  }, [instalacionId]);
-
-  const recargar = async () => {
-    if (!instalacionId) return;
     try {
       setCargando(true);
       setError(null);
-      const datos = await gesvenApi.obtenerInventario(instalacionId);
+      const datos = await gesvenApi.obtenerInventarioActual(instalacionId); // Nota: actualicé el nombre del método según inventoryService
       setProductos(datos);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setCargando(false);
     }
-  };
+  }, [instalacionId]);
 
-  return { productos, cargando, error, recargar };
+  useEffect(() => {
+    cargarInventario();
+  }, [cargarInventario]);
+
+  return { productos, cargando, error, recargar: cargarInventario };
 }
 
 /**
@@ -167,7 +147,7 @@ export function useProductosParaCompraApi(instalacionId: number | null) {
       try {
         setCargando(true);
         setError(null);
-        const datos = await gesvenApi.obtenerProductosParaCompra(instalacionId);
+        const datos = await gesvenApi.obtenerProductosParaCompra(instalacionId!);
         if (!cancelado) {
           setProductos(datos);
         }
@@ -224,36 +204,7 @@ export function useOrdenesCompraApi(instalacionId?: number) {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelado = false;
-
-    async function cargarOrdenes() {
-      try {
-        setCargando(true);
-        setError(null);
-        const datos = await gesvenApi.obtenerOrdenesCompra(instalacionId);
-        if (!cancelado) {
-          setOrdenes(datos);
-        }
-      } catch (err) {
-        if (!cancelado) {
-          setError(err instanceof Error ? err.message : 'Error desconocido');
-        }
-      } finally {
-        if (!cancelado) {
-          setCargando(false);
-        }
-      }
-    }
-
-    cargarOrdenes();
-
-    return () => {
-      cancelado = true;
-    };
-  }, [instalacionId]);
-
-  const recargar = async () => {
+  const cargarOrdenes = useCallback(async () => {
     try {
       setCargando(true);
       setError(null);
@@ -264,7 +215,11 @@ export function useOrdenesCompraApi(instalacionId?: number) {
     } finally {
       setCargando(false);
     }
-  };
+  }, [instalacionId]);
 
-  return { ordenes, cargando, error, recargar };
+  useEffect(() => {
+    cargarOrdenes();
+  }, [cargarOrdenes]);
+
+  return { ordenes, cargando, error, recargar: cargarOrdenes };
 }

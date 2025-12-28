@@ -1,11 +1,7 @@
 import {
-  ArrowLeftRight,
-  Ban,
   Banknote,
   Building2,
   ClipboardCheck,
-  ClipboardEdit,
-  ClipboardList,
   CloudUpload,
   Key,
   LayoutDashboard,
@@ -14,7 +10,6 @@ import {
   ShoppingCart,
   Tag,
   Truck,
-  Users,
 } from 'lucide-react';
 import { MenuConfig } from './types';
 

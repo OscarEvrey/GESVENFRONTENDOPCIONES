@@ -10,12 +10,17 @@ import {
   useState,
 } from 'react';
 
-import type { Instalacion } from '../types';
-import gesvenApi from '../services/gesvenApi';
+// --- IMPORTACIONES CORREGIDAS (Usando rutas correctas) ---
 
-export type { Instalacion } from '../types';
+// 1. Tipos del módulo tienda-inventario
+import type { Instalacion } from '@/tienda-inventario/types';
 
-// ============ TIPOS ============
+// 2. Servicios API del módulo tienda-inventario
+import gesvenApi from '@/tienda-inventario/services';
+
+export type { Instalacion } from '@/tienda-inventario/types';
+
+// ============ TIPOS LOCALES DEL CONTEXTO ============
 interface ContextoInstalacionValor {
   instalacionActiva: Instalacion | null;
   instalaciones: Instalacion[];
@@ -28,7 +33,6 @@ interface ContextoInstalacionValor {
 function normalizarTipo(tipoApi: string): Instalacion['tipo'] {
   const t = (tipoApi || '').toLowerCase();
   if (t === 'almacen') return 'almacen';
-  // El backend usa "Oficina"; en frontend mantenemos "oficinas".
   return 'oficinas';
 }
 
@@ -70,7 +74,11 @@ export function ContextoInstalacionProvider({
         setCargandoInstalaciones(true);
         setErrorInstalaciones(null);
 
+        // Llamada a la API
         const instalacionesApi = await gesvenApi.obtenerInstalaciones();
+        
+        // Mapeo de datos (API DTO -> Frontend Model)
+        // Nota: Al arreglar el import de 'gesvenApi', TypeScript sabrá automáticamente qué tipo es 'i'
         const instalacionesNormalizadas: Instalacion[] = instalacionesApi.map((i) => ({
           instalacionId: i.instalacionId,
           id: slugInstalacion(i.nombre),
@@ -84,6 +92,7 @@ export function ContextoInstalacionProvider({
         if (cancelado) return;
         setInstalaciones(instalacionesNormalizadas);
 
+        // Lógica de recuperación de sesión (localStorage)
         const idGuardado = window.localStorage.getItem(claveLocalStorage);
         if (!idGuardado) return;
 
@@ -155,7 +164,7 @@ export function ContextoInstalacionProvider({
   );
 }
 
-// ============ HOOK ============
+// ============ HOOKS ============
 export function useContextoInstalacion(): ContextoInstalacionValor {
   const contexto = useContext(ContextoInstalacion);
   if (contexto === undefined) {

@@ -56,7 +56,9 @@ interface ProductoInventario {
 }
 
 // ============ DATOS FICTICIOS - ALMACÉN (Refrescos y Snacks) ============
-const productosAlmacen: ProductoInventario[] = [
+// TODO: Datos de ejemplo para desarrollo - eliminar cuando se conecte al backend
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _productosAlmacen: ProductoInventario[] = [
   {
     id: '1',
     codigo: 'REF-001',
@@ -204,7 +206,9 @@ const productosAlmacen: ProductoInventario[] = [
 ];
 
 // ============ DATOS FICTICIOS - OFICINAS (Papelería y Consumibles) ============
-const productosOficinas: ProductoInventario[] = [
+// TODO: Datos de ejemplo para desarrollo - eliminar cuando se conecte al backend
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _productosOficinas: ProductoInventario[] = [
   {
     id: '1',
     codigo: 'PAP-001',
