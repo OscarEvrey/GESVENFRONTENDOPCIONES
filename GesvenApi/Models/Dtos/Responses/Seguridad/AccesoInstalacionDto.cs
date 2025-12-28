@@ -16,9 +16,6 @@ public class AccesoInstalacionDto
     public string RolNombre { get; set; } = string.Empty;
 
     public bool EsActivo { get; set; }
-
-    public PermisosModuloDto Permisos { get; set; } = new();
-
     public DateTime CreadoEn { get; set; }
     public int? CreadoPor { get; set; }
     public DateTime ActualizadoEn { get; set; }

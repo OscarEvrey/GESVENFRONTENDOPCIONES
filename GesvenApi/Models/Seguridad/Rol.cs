@@ -26,5 +26,9 @@ public class Rol : EntidadAuditable
     /// Indica si el rol está activo.
     /// </summary>
     public bool EsActivo { get; set; } = true;
-}
 
+    /// <summary>
+    /// Navegación a la tabla intermedia de permisos.
+    /// </summary>
+    public ICollection<RolPermiso> RolPermisos { get; set; } = new List<RolPermiso>();
+}

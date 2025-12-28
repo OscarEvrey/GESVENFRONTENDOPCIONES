@@ -10,9 +10,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GesvenApi.Controllers;
 
-/// <summary>
-/// Administración de accesos Usuario-Instalación-Rol.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class AccesosController : ControllerBase
@@ -28,10 +25,6 @@ public class AccesosController : ControllerBase
         _logger = logger;
     }
 
-    /// <summary>
-    /// GET /api/accesos/usuarios
-    /// Lista usuarios del sistema (fuente actual: tabla Seg.Usuario).
-    /// </summary>
     [HttpGet("usuarios")]
     [ProducesResponseType(typeof(RespuestaApi<List<UsuarioDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<RespuestaApi<List<UsuarioDto>>>> ObtenerUsuarios([FromQuery] string? q = null)
@@ -39,7 +32,6 @@ public class AccesosController : ControllerBase
         try
         {
             var query = _contexto.Usuarios.AsNoTracking();
-
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var term = q.Trim().ToLower();
@@ -61,27 +53,17 @@ public class AccesosController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al obtener usuarios");
-            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<List<UsuarioDto>>
-            {
-                Exito = false,
-                Mensaje = "Error al obtener usuarios",
-                Errores = ["Ocurrió un error interno. Por favor, intente más tarde."],
-            });
+            return StatusCode(500, new RespuestaApi<object> { Exito = false, Mensaje = "Error interno" });
         }
     }
 
-    /// <summary>
-    /// GET /api/accesos/roles
-    /// Lista roles.
-    /// </summary>
     [HttpGet("roles")]
     [ProducesResponseType(typeof(RespuestaApi<List<RolDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<RespuestaApi<List<RolDto>>>> ObtenerRoles()
     {
         try
         {
-            var roles = await _contexto.Roles
-                .AsNoTracking()
+            var roles = await _contexto.Roles.AsNoTracking()
                 .OrderBy(r => r.Nombre)
                 .ProjectTo<RolDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
@@ -96,19 +78,10 @@ public class AccesosController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al obtener roles");
-            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<List<RolDto>>
-            {
-                Exito = false,
-                Mensaje = "Error al obtener roles",
-                Errores = ["Ocurrió un error interno. Por favor, intente más tarde."],
-            });
+            return StatusCode(500, new RespuestaApi<object> { Exito = false, Mensaje = "Error interno" });
         }
     }
 
-    /// <summary>
-    /// GET /api/accesos
-    /// Lista accesos asignados.
-    /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(RespuestaApi<List<AccesoInstalacionDto>>), StatusCodes.Status200OK)]
     public async Task<ActionResult<RespuestaApi<List<AccesoInstalacionDto>>>> ObtenerAccesos(
@@ -119,22 +92,14 @@ public class AccesosController : ControllerBase
         try
         {
             var query = _contexto.AccesosInstalacion
+                .Include(a => a.Usuario)
+                .Include(a => a.Instalacion)
+                .Include(a => a.Rol)
                 .AsNoTracking();
 
-            if (instalacionId is not null)
-            {
-                query = query.Where(a => a.InstalacionId == instalacionId);
-            }
-
-            if (usuarioId is not null)
-            {
-                query = query.Where(a => a.UsuarioId == usuarioId);
-            }
-
-            if (!incluirInactivos)
-            {
-                query = query.Where(a => a.EsActivo);
-            }
+            if (instalacionId is not null) query = query.Where(a => a.InstalacionId == instalacionId);
+            if (usuarioId is not null) query = query.Where(a => a.UsuarioId == usuarioId);
+            if (!incluirInactivos) query = query.Where(a => a.EsActivo);
 
             var accesos = await query
                 .OrderByDescending(a => a.ActualizadoEn)
@@ -150,16 +115,6 @@ public class AccesosController : ControllerBase
                     RolId = a.RolId,
                     RolNombre = a.Rol != null ? a.Rol.Nombre : string.Empty,
                     EsActivo = a.EsActivo,
-                    Permisos = new PermisosModuloDto
-                    {
-                        Compras = a.PermisoCompras,
-                        Ventas = a.PermisoVentas,
-                        Inventario = a.PermisoInventario,
-                        Facturacion = a.PermisoFacturacion,
-                        Pagos = a.PermisoPagos,
-                        Auditoria = a.PermisoAuditoria,
-                        Catalogos = a.PermisoCatalogos,
-                    },
                     CreadoEn = a.CreadoEn,
                     CreadoPor = a.CreadoPor,
                     ActualizadoEn = a.ActualizadoEn,
@@ -177,68 +132,27 @@ public class AccesosController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al obtener accesos");
-            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<List<AccesoInstalacionDto>>
-            {
-                Exito = false,
-                Mensaje = "Error al obtener accesos",
-                Errores = ["Ocurrió un error interno. Por favor, intente más tarde."],
-            });
+            return StatusCode(500, new RespuestaApi<object> { Exito = false, Mensaje = "Error interno" });
         }
     }
 
-    /// <summary>
-    /// POST /api/accesos
-    /// Crea (o reactiva) un acceso Usuario-Instalación.
-    /// </summary>
     [HttpPost]
     [ProducesResponseType(typeof(RespuestaApi<AccesoInstalacionDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(RespuestaApi<AccesoInstalacionDto>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<RespuestaApi<AccesoInstalacionDto>>> CrearAcceso([FromBody] CrearAccesoInstalacionDto dto)
     {
         try
         {
             if (dto.UsuarioId <= 0 || dto.InstalacionId <= 0 || dto.RolId <= 0)
             {
-                return BadRequest(new RespuestaApi<AccesoInstalacionDto>
-                {
-                    Exito = false,
-                    Mensaje = "Datos inválidos",
-                    Errores = ["UsuarioId, InstalacionId y RolId son requeridos."],
-                });
+                return BadRequest(new RespuestaApi<object> { Exito = false, Mensaje = "Datos inválidos", Errores = ["IDs requeridos."] });
             }
 
-            var existeUsuario = await _contexto.Usuarios.AnyAsync(u => u.UsuarioId == dto.UsuarioId);
-            if (!existeUsuario)
-            {
-                return BadRequest(new RespuestaApi<AccesoInstalacionDto>
-                {
-                    Exito = false,
-                    Mensaje = "Usuario no encontrado",
-                    Errores = [$"No existe UsuarioId={dto.UsuarioId}"],
-                });
-            }
-
-            var existeInstalacion = await _contexto.Instalaciones.AnyAsync(i => i.InstalacionId == dto.InstalacionId);
-            if (!existeInstalacion)
-            {
-                return BadRequest(new RespuestaApi<AccesoInstalacionDto>
-                {
-                    Exito = false,
-                    Mensaje = "Instalación no encontrada",
-                    Errores = [$"No existe InstalacionId={dto.InstalacionId}"],
-                });
-            }
-
-            var existeRol = await _contexto.Roles.AnyAsync(r => r.RolId == dto.RolId);
-            if (!existeRol)
-            {
-                return BadRequest(new RespuestaApi<AccesoInstalacionDto>
-                {
-                    Exito = false,
-                    Mensaje = "Rol no encontrado",
-                    Errores = [$"No existe RolId={dto.RolId}"],
-                });
-            }
+            if (!await _contexto.Usuarios.AnyAsync(u => u.UsuarioId == dto.UsuarioId))
+                return BadRequest(new RespuestaApi<object> { Exito = false, Mensaje = "Usuario no existe" });
+            if (!await _contexto.Instalaciones.AnyAsync(i => i.InstalacionId == dto.InstalacionId))
+                return BadRequest(new RespuestaApi<object> { Exito = false, Mensaje = "Instalación no existe" });
+            if (!await _contexto.Roles.AnyAsync(r => r.RolId == dto.RolId))
+                return BadRequest(new RespuestaApi<object> { Exito = false, Mensaje = "Rol no existe" });
 
             var existente = await _contexto.AccesosInstalacion
                 .FirstOrDefaultAsync(a => a.UsuarioId == dto.UsuarioId && a.InstalacionId == dto.InstalacionId);
@@ -250,16 +164,8 @@ public class AccesosController : ControllerBase
                     UsuarioId = dto.UsuarioId,
                     InstalacionId = dto.InstalacionId,
                     RolId = dto.RolId,
-                    EsActivo = dto.EsActivo,
-                    PermisoCompras = dto.PermisoCompras,
-                    PermisoVentas = dto.PermisoVentas,
-                    PermisoInventario = dto.PermisoInventario,
-                    PermisoFacturacion = dto.PermisoFacturacion,
-                    PermisoPagos = dto.PermisoPagos,
-                    PermisoAuditoria = dto.PermisoAuditoria,
-                    PermisoCatalogos = dto.PermisoCatalogos,
+                    EsActivo = dto.EsActivo
                 };
-
                 _contexto.AccesosInstalacion.Add(nuevo);
                 await _contexto.SaveChangesAsync();
 
@@ -267,92 +173,43 @@ public class AccesosController : ControllerBase
                 {
                     Exito = true,
                     Mensaje = "Acceso creado exitosamente",
-                    Datos = await MapAccesoDto(nuevo.AccesoId),
+                    Datos = await MapAccesoDto(nuevo.AccesoId)
                 });
             }
 
+            // Actualizar existente
             existente.RolId = dto.RolId;
             existente.EsActivo = dto.EsActivo;
-            existente.PermisoCompras = dto.PermisoCompras;
-            existente.PermisoVentas = dto.PermisoVentas;
-            existente.PermisoInventario = dto.PermisoInventario;
-            existente.PermisoFacturacion = dto.PermisoFacturacion;
-            existente.PermisoPagos = dto.PermisoPagos;
-            existente.PermisoAuditoria = dto.PermisoAuditoria;
-            existente.PermisoCatalogos = dto.PermisoCatalogos;
-
             await _contexto.SaveChangesAsync();
 
             return Ok(new RespuestaApi<AccesoInstalacionDto>
             {
                 Exito = true,
-                Mensaje = "Acceso actualizado (reactivado) exitosamente",
-                Datos = await MapAccesoDto(existente.AccesoId),
-            });
-        }
-        catch (DbUpdateException dbEx)
-        {
-            _logger.LogError(dbEx, "Error de BD al crear acceso");
-            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<AccesoInstalacionDto>
-            {
-                Exito = false,
-                Mensaje = "Error al crear acceso",
-                Errores = ["No fue posible guardar el acceso. Verifique restricciones de unicidad o llaves foráneas."],
+                Mensaje = "Acceso reactivado/actualizado exitosamente",
+                Datos = await MapAccesoDto(existente.AccesoId)
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al crear acceso");
-            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<AccesoInstalacionDto>
-            {
-                Exito = false,
-                Mensaje = "Error al crear acceso",
-                Errores = ["Ocurrió un error interno. Por favor, intente más tarde."],
-            });
+            return StatusCode(500, new RespuestaApi<object> { Exito = false, Mensaje = "Error interno" });
         }
     }
 
-    /// <summary>
-    /// PUT /api/accesos/{accesoId}
-    /// Actualiza rol, permisos y estatus.
-    /// </summary>
     [HttpPut("{accesoId:int}")]
     [ProducesResponseType(typeof(RespuestaApi<AccesoInstalacionDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(RespuestaApi<AccesoInstalacionDto>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<RespuestaApi<AccesoInstalacionDto>>> ActualizarAcceso(int accesoId, [FromBody] ActualizarAccesoInstalacionDto dto)
     {
         try
         {
             var acceso = await _contexto.AccesosInstalacion.FirstOrDefaultAsync(a => a.AccesoId == accesoId);
-            if (acceso is null)
-            {
-                return NotFound(new RespuestaApi<AccesoInstalacionDto>
-                {
-                    Exito = false,
-                    Mensaje = "Acceso no encontrado",
-                });
-            }
+            if (acceso is null) return NotFound(new RespuestaApi<object> { Exito = false, Mensaje = "Acceso no encontrado" });
 
-            var existeRol = await _contexto.Roles.AnyAsync(r => r.RolId == dto.RolId);
-            if (!existeRol)
-            {
-                return BadRequest(new RespuestaApi<AccesoInstalacionDto>
-                {
-                    Exito = false,
-                    Mensaje = "Rol no encontrado",
-                    Errores = [$"No existe RolId={dto.RolId}"],
-                });
-            }
+            if (!await _contexto.Roles.AnyAsync(r => r.RolId == dto.RolId))
+                return BadRequest(new RespuestaApi<object> { Exito = false, Mensaje = "Rol no existe" });
 
             acceso.RolId = dto.RolId;
             acceso.EsActivo = dto.EsActivo;
-            acceso.PermisoCompras = dto.PermisoCompras;
-            acceso.PermisoVentas = dto.PermisoVentas;
-            acceso.PermisoInventario = dto.PermisoInventario;
-            acceso.PermisoFacturacion = dto.PermisoFacturacion;
-            acceso.PermisoPagos = dto.PermisoPagos;
-            acceso.PermisoAuditoria = dto.PermisoAuditoria;
-            acceso.PermisoCatalogos = dto.PermisoCatalogos;
 
             await _contexto.SaveChangesAsync();
 
@@ -360,41 +217,24 @@ public class AccesosController : ControllerBase
             {
                 Exito = true,
                 Mensaje = "Acceso actualizado exitosamente",
-                Datos = await MapAccesoDto(accesoId),
+                Datos = await MapAccesoDto(accesoId)
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al actualizar acceso {AccesoId}", accesoId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<AccesoInstalacionDto>
-            {
-                Exito = false,
-                Mensaje = "Error al actualizar acceso",
-                Errores = ["Ocurrió un error interno. Por favor, intente más tarde."],
-            });
+            _logger.LogError(ex, "Error al actualizar acceso");
+            return StatusCode(500, new RespuestaApi<object> { Exito = false, Mensaje = "Error interno" });
         }
     }
 
-    /// <summary>
-    /// DELETE /api/accesos/{accesoId}
-    /// Revoca (desactiva) el acceso.
-    /// </summary>
     [HttpDelete("{accesoId:int}")]
     [ProducesResponseType(typeof(RespuestaApi<AccesoInstalacionDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(RespuestaApi<AccesoInstalacionDto>), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<RespuestaApi<AccesoInstalacionDto>>> RevocarAcceso(int accesoId)
     {
         try
         {
             var acceso = await _contexto.AccesosInstalacion.FirstOrDefaultAsync(a => a.AccesoId == accesoId);
-            if (acceso is null)
-            {
-                return NotFound(new RespuestaApi<AccesoInstalacionDto>
-                {
-                    Exito = false,
-                    Mensaje = "Acceso no encontrado",
-                });
-            }
+            if (acceso is null) return NotFound(new RespuestaApi<object> { Exito = false, Mensaje = "Acceso no encontrado" });
 
             acceso.EsActivo = false;
             await _contexto.SaveChangesAsync();
@@ -403,18 +243,13 @@ public class AccesosController : ControllerBase
             {
                 Exito = true,
                 Mensaje = "Acceso revocado exitosamente",
-                Datos = await MapAccesoDto(accesoId),
+                Datos = await MapAccesoDto(accesoId)
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al revocar acceso {AccesoId}", accesoId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new RespuestaApi<AccesoInstalacionDto>
-            {
-                Exito = false,
-                Mensaje = "Error al revocar acceso",
-                Errores = ["Ocurrió un error interno. Por favor, intente más tarde."],
-            });
+            _logger.LogError(ex, "Error al revocar acceso");
+            return StatusCode(500, new RespuestaApi<object> { Exito = false, Mensaje = "Error interno" });
         }
     }
 
@@ -422,6 +257,9 @@ public class AccesosController : ControllerBase
     {
         return await _contexto.AccesosInstalacion
             .AsNoTracking()
+            .Include(a => a.Usuario)
+            .Include(a => a.Instalacion)
+            .Include(a => a.Rol)
             .Where(a => a.AccesoId == accesoId)
             .Select(a => new AccesoInstalacionDto
             {
@@ -435,16 +273,6 @@ public class AccesosController : ControllerBase
                 RolId = a.RolId,
                 RolNombre = a.Rol != null ? a.Rol.Nombre : string.Empty,
                 EsActivo = a.EsActivo,
-                Permisos = new PermisosModuloDto
-                {
-                    Compras = a.PermisoCompras,
-                    Ventas = a.PermisoVentas,
-                    Inventario = a.PermisoInventario,
-                    Facturacion = a.PermisoFacturacion,
-                    Pagos = a.PermisoPagos,
-                    Auditoria = a.PermisoAuditoria,
-                    Catalogos = a.PermisoCatalogos,
-                },
                 CreadoEn = a.CreadoEn,
                 CreadoPor = a.CreadoPor,
                 ActualizadoEn = a.ActualizadoEn,

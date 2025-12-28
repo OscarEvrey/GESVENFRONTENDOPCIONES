@@ -9,30 +9,26 @@ public class AccesoInstalacionConfiguration : IEntityTypeConfiguration<AccesoIns
     public void Configure(EntityTypeBuilder<AccesoInstalacion> builder)
     {
         builder.ToTable("AccesoInstalacion", "Seg");
-        builder.HasKey(e => e.AccesoId);
 
-            builder.Property(e => e.EsActivo)
-                  .HasDefaultValue(true);
+        builder.HasKey(a => a.AccesoId);
 
-            builder.Property(e => e.PermisoCompras).HasDefaultValue(false);
-            builder.Property(e => e.PermisoVentas).HasDefaultValue(false);
-            builder.Property(e => e.PermisoInventario).HasDefaultValue(false);
-            builder.Property(e => e.PermisoFacturacion).HasDefaultValue(false);
-            builder.Property(e => e.PermisoPagos).HasDefaultValue(false);
-            builder.Property(e => e.PermisoAuditoria).HasDefaultValue(false);
-            builder.Property(e => e.PermisoCatalogos).HasDefaultValue(false);
+        builder.Property(a => a.EsActivo)
+            .HasDefaultValue(true);
 
-        builder.HasOne(e => e.Usuario)
-              .WithMany(e => e.Accesos)
-              .HasForeignKey(e => e.UsuarioId);
-        builder.HasOne(e => e.Instalacion)
-              .WithMany(e => e.Accesos)
-              .HasForeignKey(e => e.InstalacionId);
-        builder.HasOne(e => e.Rol)
-              .WithMany()
-              .HasForeignKey(e => e.RolId);
+        // Relaciones
+        builder.HasOne(a => a.Usuario)
+            .WithMany() // Asumiendo que Usuario no tiene lista de Accesos, si tiene pon .WithMany(u => u.Accesos)
+            .HasForeignKey(a => a.UsuarioId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasIndex(e => new { e.UsuarioId, e.InstalacionId })
-                  .IsUnique();
+        builder.HasOne(a => a.Instalacion)
+            .WithMany()
+            .HasForeignKey(a => a.InstalacionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(a => a.Rol)
+            .WithMany()
+            .HasForeignKey(a => a.RolId)
+            .OnDelete(DeleteBehavior.Restrict);     
     }
 }

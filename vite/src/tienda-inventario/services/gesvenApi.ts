@@ -318,6 +318,72 @@ export interface DashboardResumenApiDto {
   ventasPendientesFacturar: number;
 }
 
+// =====================
+// Seguridad / Accesos
+// =====================
+
+export interface UsuarioSeguridadApiDto {
+  usuarioId: number;
+  email: string;
+  nombreCompleto: string;
+  numeroEmpleado: string | null;
+  puesto: string | null;
+}
+
+export interface RolSeguridadApiDto {
+  rolId: number;
+  nombre: string;
+  descripcion: string | null;
+  esActivo: boolean;
+}
+
+export interface PermisosModuloApiDto {
+  compras: boolean;
+  ventas: boolean;
+  inventario: boolean;
+  facturacion: boolean;
+  pagos: boolean;
+  auditoria: boolean;
+  catalogos: boolean;
+}
+
+export interface AccesoInstalacionApiDto {
+  accesoId: number;
+  usuarioId: number;
+  usuarioNombreCompleto: string;
+  usuarioEmail: string;
+  usuarioPuesto: string | null;
+  instalacionId: number;
+  instalacionNombre: string;
+  rolId: number;
+  rolNombre: string;
+  esActivo: boolean;
+  permisos: PermisosModuloApiDto;
+  creadoEn: string;
+  creadoPor: number | null;
+  actualizadoEn: string;
+  actualizadoPor: number | null;
+}
+
+export interface CrearAccesoInstalacionApiDto {
+  usuarioId: number;
+  instalacionId: number;
+  rolId: number;
+  esActivo: boolean;
+  permisoCompras: boolean;
+  permisoVentas: boolean;
+  permisoInventario: boolean;
+  permisoFacturacion: boolean;
+  permisoPagos: boolean;
+  permisoAuditoria: boolean;
+  permisoCatalogos: boolean;
+}
+
+export type ActualizarAccesoInstalacionApiDto = Omit<
+  CrearAccesoInstalacionApiDto,
+  'usuarioId' | 'instalacionId'
+>;
+
 /**
  * Cliente de la API de Gesven
  */
@@ -907,6 +973,128 @@ export const gesvenApi = {
     const data: RespuestaApi<DashboardResumenApiDto> = await response.json();
     if (!data.exito || !data.datos) {
       throw new Error(data.mensaje || 'No se recibió el resumen');
+    }
+    return data.datos;
+  },
+
+  // =====================
+  // Seguridad / Accesos
+  // =====================
+
+  async obtenerUsuariosSeguridad(q?: string): Promise<UsuarioSeguridadApiDto[]> {
+    const query = q && q.trim() ? `?q=${encodeURIComponent(q.trim())}` : '';
+    const response = await fetch(`${API_BASE_URL}/api/accesos/usuarios${query}`, {
+      headers: buildHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+
+    const data: RespuestaApi<UsuarioSeguridadApiDto[]> = await response.json();
+    if (!data.exito) {
+      throw new Error(data.mensaje);
+    }
+    return data.datos ?? [];
+  },
+
+  async obtenerRolesSeguridad(): Promise<RolSeguridadApiDto[]> {
+    const response = await fetch(`${API_BASE_URL}/api/accesos/roles`, {
+      headers: buildHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+
+    const data: RespuestaApi<RolSeguridadApiDto[]> = await response.json();
+    if (!data.exito) {
+      throw new Error(data.mensaje);
+    }
+    return data.datos ?? [];
+  },
+
+  async obtenerAccesos(params?: {
+    instalacionId?: number;
+    usuarioId?: number;
+    incluirInactivos?: boolean;
+  }): Promise<AccesoInstalacionApiDto[]> {
+    const qs = new URLSearchParams();
+    if (params?.instalacionId) qs.set('instalacionId', String(params.instalacionId));
+    if (params?.usuarioId) qs.set('usuarioId', String(params.usuarioId));
+    if (typeof params?.incluirInactivos === 'boolean') {
+      qs.set('incluirInactivos', String(params.incluirInactivos));
+    }
+
+    const query = qs.toString() ? `?${qs.toString()}` : '';
+    const response = await fetch(`${API_BASE_URL}/api/accesos${query}`, {
+      headers: buildHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP: ${response.status}`);
+    }
+
+    const data: RespuestaApi<AccesoInstalacionApiDto[]> = await response.json();
+    if (!data.exito) {
+      throw new Error(data.mensaje);
+    }
+    return data.datos ?? [];
+  },
+
+  async crearAccesoInstalacion(dto: CrearAccesoInstalacionApiDto): Promise<AccesoInstalacionApiDto> {
+    const response = await fetch(`${API_BASE_URL}/api/accesos`, {
+      method: 'POST',
+      headers: {
+        ...buildHeaders({ 'Content-Type': 'application/json' }),
+      },
+      body: JSON.stringify(dto),
+    });
+
+    const data: RespuestaApi<AccesoInstalacionApiDto> = await response.json();
+    if (!response.ok || !data.exito) {
+      const detalles = (data?.errores ?? []).join(' | ');
+      throw new Error(detalles || data?.mensaje || `Error HTTP: ${response.status}`);
+    }
+    if (!data.datos) {
+      throw new Error('Respuesta sin datos al crear acceso');
+    }
+    return data.datos;
+  },
+
+  async actualizarAccesoInstalacion(accesoId: number, dto: ActualizarAccesoInstalacionApiDto): Promise<AccesoInstalacionApiDto> {
+    const response = await fetch(`${API_BASE_URL}/api/accesos/${accesoId}`, {
+      method: 'PUT',
+      headers: {
+        ...buildHeaders({ 'Content-Type': 'application/json' }),
+      },
+      body: JSON.stringify(dto),
+    });
+
+    const data: RespuestaApi<AccesoInstalacionApiDto> = await response.json();
+    if (!response.ok || !data.exito) {
+      const detalles = (data?.errores ?? []).join(' | ');
+      throw new Error(detalles || data?.mensaje || `Error HTTP: ${response.status}`);
+    }
+    if (!data.datos) {
+      throw new Error('Respuesta sin datos al actualizar acceso');
+    }
+    return data.datos;
+  },
+
+  async revocarAccesoInstalacion(accesoId: number): Promise<AccesoInstalacionApiDto> {
+    const response = await fetch(`${API_BASE_URL}/api/accesos/${accesoId}`, {
+      method: 'DELETE',
+      headers: buildHeaders(),
+    });
+
+    const data: RespuestaApi<AccesoInstalacionApiDto> = await response.json();
+    if (!response.ok || !data.exito) {
+      const detalles = (data?.errores ?? []).join(' | ');
+      throw new Error(detalles || data?.mensaje || `Error HTTP: ${response.status}`);
+    }
+    if (!data.datos) {
+      throw new Error('Respuesta sin datos al revocar acceso');
     }
     return data.datos;
   },

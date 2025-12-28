@@ -11,6 +11,7 @@ public class EstatusLookupService : IEstatusLookupService
 {
     private readonly GesvenDbContext _contexto;
     private readonly ILogger<EstatusLookupService> _logger;
+    // Cache: (Modulo, NombreEstatus) -> EstatusId
     private readonly Dictionary<(string? modulo, string nombre), int> _cache = new();
     private bool _catalogoCargado;
     private readonly SemaphoreSlim _sincronizador = new(1, 1);
@@ -31,34 +32,47 @@ public class EstatusLookupService : IEstatusLookupService
         var nombreClave = Normalizar(nombre);
         var moduloClave = string.IsNullOrWhiteSpace(modulo) ? null : Normalizar(modulo!);
 
+        // 1. Intento rápido en caché
         if (_cache.TryGetValue((moduloClave, nombreClave), out var idEnCache))
         {
             return idEnCache;
         }
 
+        // 2. Si ya cargamos todo y no está, probamos genérico o fallamos
         if (_catalogoCargado)
         {
             if (_cache.TryGetValue((null, nombreClave), out var idGenerico))
             {
                 return idGenerico;
             }
-
             throw CrearExcepcion(nombre, modulo);
         }
 
+        // 3. Cargar catálogo (Thread-Safe)
         await _sincronizador.WaitAsync(cancellationToken);
         try
         {
             if (!_catalogoCargado)
             {
-                var estatus = await _contexto.EstatusGenerales.AsNoTracking().ToListAsync(cancellationToken);
+                // CORRECCIÓN 1: Agregar .Include(e => e.Modulo) para traer el nombre del módulo
+                var estatus = await _contexto.EstatusGenerales
+                    .AsNoTracking()
+                    .Include(e => e.Modulo) 
+                    .ToListAsync(cancellationToken);
+
                 foreach (var est in estatus)
                 {
-                    var moduloNormalizado = Normalizar(est.Modulo);
+                    // CORRECCIÓN 2: Acceder a est.Modulo.Nombre en lugar del objeto est.Modulo
+                    // Usamos ?. y ?? por seguridad en caso de inconsistencia de datos viejos
+                    var nombreModuloReal = est.Modulo?.Nombre ?? string.Empty;
+                    
+                    var moduloNormalizado = Normalizar(nombreModuloReal);
                     var nombreNormalizado = Normalizar(est.Nombre);
 
+                    // Guardar en caché: (Modulo, Estatus) -> ID
                     _cache[(moduloNormalizado, nombreNormalizado)] = est.EstatusId;
 
+                    // También guardamos una entrada "sin módulo" (null) como fallback
                     if (!_cache.ContainsKey((null, nombreNormalizado)))
                     {
                         _cache[(null, nombreNormalizado)] = est.EstatusId;
@@ -74,6 +88,7 @@ public class EstatusLookupService : IEstatusLookupService
             _sincronizador.Release();
         }
 
+        // 4. Reintentar búsqueda post-carga
         if (_cache.TryGetValue((moduloClave, nombreClave), out var idCargado))
         {
             return idCargado;

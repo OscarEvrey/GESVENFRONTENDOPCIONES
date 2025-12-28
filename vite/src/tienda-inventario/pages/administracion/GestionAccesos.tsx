@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ColumnDef,
   getCoreRowModel,
@@ -61,10 +61,13 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useContextoInstalacion } from '../../context/ContextoInstalacion';
+import gesvenApi, {
+  AccesoInstalacionApiDto,
+  RolSeguridadApiDto,
+  UsuarioSeguridadApiDto,
+} from '../../services/gesvenApi';
 
 // ============ TIPOS ============
-type RolAcceso = 'Administrador' | 'Ventas' | 'Inventario' | 'Facturación' | 'Pagos';
-
 interface PermisoModulo {
   compras: boolean;
   ventas: boolean;
@@ -76,14 +79,15 @@ interface PermisoModulo {
 }
 
 interface AccesoUsuario {
-  id: string;
-  usuarioId: string;
+  accesoId: number;
+  usuarioId: number;
   nombreUsuario: string;
   emailUsuario: string;
   departamento: string;
-  instalacionId: string;
+  instalacionId: number;
   instalacionNombre: string;
-  rol: RolAcceso;
+  rolId: number;
+  rolNombre: string;
   permisos: PermisoModulo;
   activo: boolean;
   fechaAsignacion: string;
@@ -99,23 +103,18 @@ interface RegistroAuditoria {
   detalle: string;
 }
 
-// ============ DATOS DE USUARIOS SIMULADOS (Active Directory) ============
-const usuariosActiveDirectory = [
-  { id: 'usr-001', nombre: 'Juan Pérez García', email: 'jperez@empresa.com', departamento: 'Operaciones' },
-  { id: 'usr-002', nombre: 'María López Sánchez', email: 'mlopez@empresa.com', departamento: 'Contabilidad' },
-  { id: 'usr-003', nombre: 'Carlos Rodríguez Vega', email: 'crodriguez@empresa.com', departamento: 'Almacén' },
-  { id: 'usr-004', nombre: 'Ana Martínez Luna', email: 'amartinez@empresa.com', departamento: 'Ventas' },
-  { id: 'usr-005', nombre: 'Roberto Hernández Díaz', email: 'rhernandez@empresa.com', departamento: 'Compras' },
-  { id: 'usr-006', nombre: 'Laura González Torres', email: 'lgonzalez@empresa.com', departamento: 'Finanzas' },
-  { id: 'usr-007', nombre: 'Pedro Ramírez Soto', email: 'pramirez@empresa.com', departamento: 'Almacén' },
-  { id: 'usr-008', nombre: 'Diana Flores Mendoza', email: 'dflores@empresa.com', departamento: 'Administración' },
-];
+const permisosVacios: PermisoModulo = {
+  compras: false,
+  ventas: false,
+  inventario: false,
+  facturacion: false,
+  pagos: false,
+  auditoria: false,
+  catalogos: false,
+};
 
-const ROLES: RolAcceso[] = ['Administrador', 'Ventas', 'Inventario', 'Facturación', 'Pagos'];
-
-// ============ PERMISOS POR ROL (predeterminados) ============
-const permisosPorRol: Record<RolAcceso, PermisoModulo> = {
-  Administrador: {
+const permisosPorRolNombre: Record<string, PermisoModulo> = {
+  administrador: {
     compras: true,
     ventas: true,
     inventario: true,
@@ -124,7 +123,7 @@ const permisosPorRol: Record<RolAcceso, PermisoModulo> = {
     auditoria: true,
     catalogos: true,
   },
-  Ventas: {
+  ventas: {
     compras: false,
     ventas: true,
     inventario: true,
@@ -133,7 +132,7 @@ const permisosPorRol: Record<RolAcceso, PermisoModulo> = {
     auditoria: false,
     catalogos: true,
   },
-  Inventario: {
+  inventario: {
     compras: true,
     ventas: false,
     inventario: true,
@@ -142,7 +141,7 @@ const permisosPorRol: Record<RolAcceso, PermisoModulo> = {
     auditoria: false,
     catalogos: true,
   },
-  Facturación: {
+  facturacion: {
     compras: false,
     ventas: false,
     inventario: false,
@@ -151,7 +150,16 @@ const permisosPorRol: Record<RolAcceso, PermisoModulo> = {
     auditoria: false,
     catalogos: false,
   },
-  Pagos: {
+  facturación: {
+    compras: false,
+    ventas: false,
+    inventario: false,
+    facturacion: true,
+    pagos: false,
+    auditoria: false,
+    catalogos: false,
+  },
+  pagos: {
     compras: false,
     ventas: false,
     inventario: false,
@@ -162,127 +170,55 @@ const permisosPorRol: Record<RolAcceso, PermisoModulo> = {
   },
 };
 
-// ============ DATOS FICTICIOS DE ACCESOS ============
-const datosIniciales: AccesoUsuario[] = [
-  {
-    id: 'acc-001',
-    usuarioId: 'usr-001',
-    nombreUsuario: 'Juan Pérez García',
-    emailUsuario: 'jperez@empresa.com',
-    departamento: 'Operaciones',
-    instalacionId: 'almacen-scc-mty',
-    instalacionNombre: 'Almacen-SCC-MTY',
-    rol: 'Administrador',
-    permisos: permisosPorRol.Administrador,
-    activo: true,
-    fechaAsignacion: '2024-01-15',
-    asignadoPor: 'Usuario 1',
-  },
-  {
-    id: 'acc-002',
-    usuarioId: 'usr-002',
-    nombreUsuario: 'María López Sánchez',
-    emailUsuario: 'mlopez@empresa.com',
-    departamento: 'Contabilidad',
-    instalacionId: 'oficinas-scc-mty',
-    instalacionNombre: 'Oficinas-SCC-MTY',
-    rol: 'Facturación',
-    permisos: permisosPorRol.Facturación,
-    activo: true,
-    fechaAsignacion: '2024-02-20',
-    asignadoPor: 'Usuario 1',
-  },
-  {
-    id: 'acc-003',
-    usuarioId: 'usr-003',
-    nombreUsuario: 'Carlos Rodríguez Vega',
-    emailUsuario: 'crodriguez@empresa.com',
-    departamento: 'Almacén',
-    instalacionId: 'almacen-scc-mty',
-    instalacionNombre: 'Almacen-SCC-MTY',
-    rol: 'Inventario',
-    permisos: permisosPorRol.Inventario,
-    activo: true,
-    fechaAsignacion: '2024-03-10',
-    asignadoPor: 'Usuario 1',
-  },
-  {
-    id: 'acc-004',
-    usuarioId: 'usr-004',
-    nombreUsuario: 'Ana Martínez Luna',
-    emailUsuario: 'amartinez@empresa.com',
-    departamento: 'Ventas',
-    instalacionId: 'almacen-vaxsa-mty',
-    instalacionNombre: 'Almacen-Vaxsa-MTY',
-    rol: 'Ventas',
-    permisos: permisosPorRol.Ventas,
-    activo: true,
-    fechaAsignacion: '2024-04-05',
-    asignadoPor: 'Usuario 1',
-  },
-  {
-    id: 'acc-005',
-    usuarioId: 'usr-005',
-    nombreUsuario: 'Roberto Hernández Díaz',
-    emailUsuario: 'rhernandez@empresa.com',
-    departamento: 'Compras',
-    instalacionId: 'oficinas-vaxsa-mty',
-    instalacionNombre: 'Oficinas-Vaxsa-MTY',
-    rol: 'Administrador',
-    permisos: permisosPorRol.Administrador,
-    activo: true,
-    fechaAsignacion: '2024-01-20',
-    asignadoPor: 'Usuario 1',
-  },
-  {
-    id: 'acc-006',
-    usuarioId: 'usr-006',
-    nombreUsuario: 'Laura González Torres',
-    emailUsuario: 'lgonzalez@empresa.com',
-    departamento: 'Finanzas',
-    instalacionId: 'oficinas-scc-mty',
-    instalacionNombre: 'Oficinas-SCC-MTY',
-    rol: 'Pagos',
-    permisos: permisosPorRol.Pagos,
-    activo: true,
-    fechaAsignacion: '2024-05-12',
-    asignadoPor: 'Usuario 1',
-  },
-];
+function permisosDesdeApi(dto: AccesoInstalacionApiDto): PermisoModulo {
+  return {
+    compras: !!dto.permisos?.compras,
+    ventas: !!dto.permisos?.ventas,
+    inventario: !!dto.permisos?.inventario,
+    facturacion: !!dto.permisos?.facturacion,
+    pagos: !!dto.permisos?.pagos,
+    auditoria: !!dto.permisos?.auditoria,
+    catalogos: !!dto.permisos?.catalogos,
+  };
+}
 
-// ============ HISTORIAL DE AUDITORÍA ============
-const historialAuditoriaInicial: RegistroAuditoria[] = [
-  {
-    id: 'aud-001',
-    fecha: '2024-12-22',
-    hora: '09:15:32',
-    usuario: 'Usuario 1',
-    accion: 'Asignación de acceso',
-    detalle: 'Se asignó rol Administrador a Juan Pérez en Almacen-SCC-MTY',
-  },
-  {
-    id: 'aud-002',
-    fecha: '2024-12-21',
-    hora: '14:30:45',
-    usuario: 'Usuario 1',
-    accion: 'Modificación de permisos',
-    detalle: 'Se modificaron permisos de María López en Oficinas-SCC-MTY',
-  },
-  {
-    id: 'aud-003',
-    fecha: '2024-12-20',
-    hora: '11:22:18',
-    usuario: 'Usuario 1',
-    accion: 'Revocación de acceso',
-    detalle: 'Se revocó acceso de Pedro Ramírez a Almacen-SCC-MTY',
-  },
-];
+function fechaIsoAFecha(iso: string): string {
+  if (!iso) return '';
+  return iso.split('T')[0];
+}
+
+function isoAHora(iso: string): string {
+  if (!iso) return '';
+  const t = iso.split('T')[1] ?? '';
+  return t.replace('Z', '').split('.')[0] ?? '';
+}
+
+function accesosADerivadosAuditoria(accesos: AccesoUsuario[]): RegistroAuditoria[] {
+  const items: RegistroAuditoria[] = [];
+
+  for (const a of accesos) {
+    if (a.fechaAsignacion) {
+      items.push({
+        id: `aud-creado-${a.accesoId}`,
+        fecha: a.fechaAsignacion,
+        hora: '00:00:00',
+        usuario: a.asignadoPor,
+        accion: 'Asignación de acceso',
+        detalle: `Se asignó rol ${a.rolNombre} a ${a.nombreUsuario} en ${a.instalacionNombre}`,
+      });
+    }
+  }
+
+  return items
+    .sort((x, y) => (y.fecha + y.hora).localeCompare(x.fecha + x.hora))
+    .slice(0, 50);
+}
 
 // ============ COMPONENTE PRINCIPAL ============
 export function GestionAccesosPage() {
   const { instalaciones } = useContextoInstalacion();
-  const [datos, setDatos] = useState<AccesoUsuario[]>(datosIniciales);
-  const [historialAuditoria, setHistorialAuditoria] = useState<RegistroAuditoria[]>(historialAuditoriaInicial);
+  const [datos, setDatos] = useState<AccesoUsuario[]>([]);
+  const [historialAuditoria, setHistorialAuditoria] = useState<RegistroAuditoria[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [tabActiva, setTabActiva] = useState('accesos');
   const [filtroInstalacion, setFiltroInstalacion] = useState<string>('todas');
@@ -290,12 +226,15 @@ export function GestionAccesosPage() {
   const [accesoEditando, setAccesoEditando] = useState<AccesoUsuario | null>(null);
   const [mensajeExito, setMensajeExito] = useState<string | null>(null);
   const [errores, setErrores] = useState<string[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const [usuarios, setUsuarios] = useState<UsuarioSeguridadApiDto[]>([]);
+  const [roles, setRoles] = useState<RolSeguridadApiDto[]>([]);
 
   // Estado del formulario
   const [formulario, setFormulario] = useState({
     usuarioId: '',
     instalacionId: '',
-    rol: '' as RolAcceso | '',
+    rolId: '',
     permisos: {
       compras: false,
       ventas: false,
@@ -307,6 +246,47 @@ export function GestionAccesosPage() {
     },
     activo: true,
   });
+
+  const cargarDatos = useCallback(async () => {
+    try {
+      setCargando(true);
+      const [usuariosApi, rolesApi, accesosApi] = await Promise.all([
+        gesvenApi.obtenerUsuariosSeguridad(),
+        gesvenApi.obtenerRolesSeguridad(),
+        gesvenApi.obtenerAccesos({ incluirInactivos: true }),
+      ]);
+
+      setUsuarios(usuariosApi);
+      setRoles(rolesApi);
+
+      const accesos: AccesoUsuario[] = accesosApi.map((a: AccesoInstalacionApiDto) => ({
+        accesoId: a.accesoId,
+        usuarioId: a.usuarioId,
+        nombreUsuario: a.usuarioNombreCompleto,
+        emailUsuario: a.usuarioEmail,
+        departamento: a.usuarioPuesto ?? '-',
+        instalacionId: a.instalacionId,
+        instalacionNombre: a.instalacionNombre,
+        rolId: a.rolId,
+        rolNombre: a.rolNombre,
+        permisos: permisosDesdeApi(a),
+        activo: a.esActivo,
+        fechaAsignacion: fechaIsoAFecha(a.actualizadoEn || a.creadoEn),
+        asignadoPor: a.actualizadoPor ? `Usuario ${a.actualizadoPor}` : a.creadoPor ? `Usuario ${a.creadoPor}` : 'Sistema',
+      }));
+
+      setDatos(accesos);
+      setHistorialAuditoria(accesosADerivadosAuditoria(accesos));
+    } catch (e) {
+      setErrores([e instanceof Error ? e.message : 'Error desconocido al cargar accesos']);
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    cargarDatos();
+  }, [cargarDatos]);
 
   // Datos filtrados
   const datosFiltrados = useMemo(() => {
@@ -336,7 +316,7 @@ export function GestionAccesosPage() {
     setFormulario({
       usuarioId: '',
       instalacionId: '',
-      rol: '',
+      rolId: '',
       permisos: {
         compras: false,
         ventas: false,
@@ -355,9 +335,9 @@ export function GestionAccesosPage() {
   const handleEditar = useCallback((acceso: AccesoUsuario) => {
     setAccesoEditando(acceso);
     setFormulario({
-      usuarioId: acceso.usuarioId,
-      instalacionId: acceso.instalacionId,
-      rol: acceso.rol,
+      usuarioId: String(acceso.usuarioId),
+      instalacionId: String(acceso.instalacionId),
+      rolId: String(acceso.rolId),
       permisos: { ...acceso.permisos },
       activo: acceso.activo,
     });
@@ -365,15 +345,18 @@ export function GestionAccesosPage() {
     setDialogoAbierto(true);
   }, []);
 
-  const handleRolChange = (rol: RolAcceso) => {
+  const handleRolChange = (rolId: string) => {
+    const rol = roles.find((r) => String(r.rolId) === rolId);
+    const nombre = (rol?.nombre ?? '').toLowerCase();
+    const preset = permisosPorRolNombre[nombre] ?? permisosVacios;
     setFormulario({
       ...formulario,
-      rol,
-      permisos: { ...permisosPorRol[rol] },
+      rolId,
+      permisos: { ...preset },
     });
   };
 
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     const nuevosErrores: string[] = [];
 
     if (!formulario.usuarioId) {
@@ -382,15 +365,15 @@ export function GestionAccesosPage() {
     if (!formulario.instalacionId) {
       nuevosErrores.push('Seleccione una instalación');
     }
-    if (!formulario.rol) {
+    if (!formulario.rolId) {
       nuevosErrores.push('Seleccione un rol');
     }
 
     // Validar duplicados (usuario + instalación)
     if (!accesoEditando && formulario.usuarioId && formulario.instalacionId) {
-      const existe = datos.find(
-        (d) => d.usuarioId === formulario.usuarioId && d.instalacionId === formulario.instalacionId
-      );
+      const uid = Number(formulario.usuarioId);
+      const iid = Number(formulario.instalacionId);
+      const existe = datos.find((d) => d.usuarioId === uid && d.instalacionId === iid);
       if (existe) {
         nuevosErrores.push('Este usuario ya tiene acceso asignado a esta instalación');
       }
@@ -401,100 +384,109 @@ export function GestionAccesosPage() {
       return;
     }
 
-    const usuarioSeleccionado = usuariosActiveDirectory.find((u) => u.id === formulario.usuarioId);
-    const instalacionSeleccionada = instalaciones.find((i) => i.id === formulario.instalacionId);
+    const usuarioSeleccionado = usuarios.find((u) => String(u.usuarioId) === formulario.usuarioId);
+    const instalacionSeleccionada = instalaciones.find((i) => String(i.instalacionId) === formulario.instalacionId);
     const fechaActual = new Date().toISOString().split('T')[0];
 
-    if (accesoEditando) {
-      // Editar acceso existente
-      setDatos(
-        datos.map((d) =>
-          d.id === accesoEditando.id
-            ? {
-                ...d,
-                rol: formulario.rol as RolAcceso,
-                permisos: formulario.permisos,
-                activo: formulario.activo,
-                fechaAsignacion: fechaActual,
-                asignadoPor: 'Usuario 1',
-              }
-            : d
-        )
-      );
+    try {
+      setErrores([]);
+      setCargando(true);
 
-      // Registrar en auditoría
+      const usuarioId = Number(formulario.usuarioId);
+      const instalacionId = Number(formulario.instalacionId);
+      const rolId = Number(formulario.rolId);
+
+      if (!Number.isFinite(usuarioId) || !Number.isFinite(instalacionId) || !Number.isFinite(rolId)) {
+        setErrores(['Usuario/Instalación/Rol inválidos']);
+        return;
+      }
+
+      if (accesoEditando) {
+        await gesvenApi.actualizarAccesoInstalacion(accesoEditando.accesoId, {
+          rolId,
+          esActivo: formulario.activo,
+          permisoCompras: formulario.permisos.compras,
+          permisoVentas: formulario.permisos.ventas,
+          permisoInventario: formulario.permisos.inventario,
+          permisoFacturacion: formulario.permisos.facturacion,
+          permisoPagos: formulario.permisos.pagos,
+          permisoAuditoria: formulario.permisos.auditoria,
+          permisoCatalogos: formulario.permisos.catalogos,
+        });
+
+        setMensajeExito(`Permisos actualizados para ${accesoEditando.nombreUsuario}.`);
+      } else {
+        await gesvenApi.crearAccesoInstalacion({
+          usuarioId,
+          instalacionId,
+          rolId,
+          esActivo: formulario.activo,
+          permisoCompras: formulario.permisos.compras,
+          permisoVentas: formulario.permisos.ventas,
+          permisoInventario: formulario.permisos.inventario,
+          permisoFacturacion: formulario.permisos.facturacion,
+          permisoPagos: formulario.permisos.pagos,
+          permisoAuditoria: formulario.permisos.auditoria,
+          permisoCatalogos: formulario.permisos.catalogos,
+        });
+
+        setMensajeExito(
+          `Acceso asignado correctamente a ${usuarioSeleccionado?.nombreCompleto ?? 'usuario'}.`
+        );
+      }
+
+      setDialogoAbierto(false);
+      await cargarDatos();
+      setTimeout(() => setMensajeExito(null), 5000);
+
+      // Registrar auditoría local (vista)
       const nuevoRegistroAuditoria: RegistroAuditoria = {
         id: `aud-${Date.now()}`,
         fecha: fechaActual,
         hora: new Date().toLocaleTimeString('es-MX'),
-        usuario: 'Usuario 1',
-        accion: 'Modificación de permisos',
-        detalle: `Se modificaron permisos de ${accesoEditando.nombreUsuario} en ${accesoEditando.instalacionNombre}`,
+        usuario: 'Sistema',
+        accion: accesoEditando ? 'Modificación de permisos' : 'Asignación de acceso',
+        detalle: accesoEditando
+          ? `Se modificaron permisos de ${accesoEditando.nombreUsuario} en ${accesoEditando.instalacionNombre}`
+          : `Se asignó rol ${roles.find((r) => String(r.rolId) === formulario.rolId)?.nombre ?? ''} a ${usuarioSeleccionado?.nombreCompleto ?? ''} en ${instalacionSeleccionada?.nombre ?? ''}`,
       };
-      setHistorialAuditoria([nuevoRegistroAuditoria, ...historialAuditoria]);
-
-      setMensajeExito(
-        `Permisos actualizados para ${accesoEditando.nombreUsuario}. Registro de auditoría guardado: Usuario 1 - ${fechaActual}`
-      );
-    } else {
-      // Nuevo acceso
-      const nuevoAcceso: AccesoUsuario = {
-        id: `acc-${Date.now()}`,
-        usuarioId: formulario.usuarioId,
-        nombreUsuario: usuarioSeleccionado?.nombre || '',
-        emailUsuario: usuarioSeleccionado?.email || '',
-        departamento: usuarioSeleccionado?.departamento || '',
-        instalacionId: formulario.instalacionId,
-        instalacionNombre: instalacionSeleccionada?.nombre || '',
-        rol: formulario.rol as RolAcceso,
-        permisos: formulario.permisos,
-        activo: formulario.activo,
-        fechaAsignacion: fechaActual,
-        asignadoPor: 'Usuario 1',
-      };
-      setDatos([...datos, nuevoAcceso]);
-
-      // Registrar en auditoría
-      const nuevoRegistroAuditoria: RegistroAuditoria = {
-        id: `aud-${Date.now()}`,
-        fecha: fechaActual,
-        hora: new Date().toLocaleTimeString('es-MX'),
-        usuario: 'Usuario 1',
-        accion: 'Asignación de acceso',
-        detalle: `Se asignó rol ${formulario.rol} a ${usuarioSeleccionado?.nombre} en ${instalacionSeleccionada?.nombre}`,
-      };
-      setHistorialAuditoria([nuevoRegistroAuditoria, ...historialAuditoria]);
-
-      setMensajeExito(
-        `Acceso asignado correctamente. Registro de auditoría guardado: Usuario 1 - ${fechaActual}`
-      );
+      setHistorialAuditoria([nuevoRegistroAuditoria, ...historialAuditoria].slice(0, 50));
+    } catch (e) {
+      setErrores([e instanceof Error ? e.message : 'Error desconocido al guardar acceso']);
+    } finally {
+      setCargando(false);
     }
-
-    setDialogoAbierto(false);
-    setTimeout(() => setMensajeExito(null), 5000);
   };
 
-  const handleRevocar = useCallback((acceso: AccesoUsuario) => {
-    const fechaActual = new Date().toISOString().split('T')[0];
-    
-    setDatos(datos.filter((d) => d.id !== acceso.id));
+  const handleRevocar = useCallback(
+    async (acceso: AccesoUsuario) => {
+      const fechaActual = new Date().toISOString().split('T')[0];
+      try {
+        setErrores([]);
+        setCargando(true);
+        await gesvenApi.revocarAccesoInstalacion(acceso.accesoId);
+        await cargarDatos();
 
-    // Registrar en auditoría
-    const nuevoRegistroAuditoria: RegistroAuditoria = {
-      id: `aud-${Date.now()}`,
-      fecha: fechaActual,
-      hora: new Date().toLocaleTimeString('es-MX'),
-      usuario: 'Usuario 1',
-      accion: 'Revocación de acceso',
-      detalle: `Se revocó acceso de ${acceso.nombreUsuario} a ${acceso.instalacionNombre}`,
-    };
-    setHistorialAuditoria([nuevoRegistroAuditoria, ...historialAuditoria]);
+        const nuevoRegistroAuditoria: RegistroAuditoria = {
+          id: `aud-${Date.now()}`,
+          fecha: fechaActual,
+          hora: new Date().toLocaleTimeString('es-MX'),
+          usuario: 'Sistema',
+          accion: 'Revocación de acceso',
+          detalle: `Se revocó acceso de ${acceso.nombreUsuario} a ${acceso.instalacionNombre}`,
+        };
+        setHistorialAuditoria([nuevoRegistroAuditoria, ...historialAuditoria].slice(0, 50));
 
-    setMensajeExito(
-      `Acceso revocado. Registro de auditoría guardado: Usuario 1 - ${fechaActual}`
-    );
-    setTimeout(() => setMensajeExito(null), 5000);
-  }, [datos, historialAuditoria]);
+        setMensajeExito('Acceso revocado.');
+        setTimeout(() => setMensajeExito(null), 5000);
+      } catch (e) {
+        setErrores([e instanceof Error ? e.message : 'Error desconocido al revocar acceso']);
+      } finally {
+        setCargando(false);
+      }
+    },
+    [cargarDatos, historialAuditoria],
+  );
 
   // Columnas de la tabla
   const columnas: ColumnDef<AccesoUsuario>[] = useMemo(
@@ -533,21 +525,25 @@ export function GestionAccesosPage() {
         ),
       },
       {
-        accessorKey: 'rol',
+        accessorKey: 'rolNombre',
         header: ({ column }) => (
           <DataGridColumnHeader column={column} title="Rol" />
         ),
         cell: ({ row }) => {
-          const rol = row.original.rol;
-          const colorRol: Record<RolAcceso, string> = {
+          const rol = row.original.rolNombre;
+          const colorRol: Record<string, string> = {
             Administrador: 'bg-purple-100 text-purple-800',
             Ventas: 'bg-green-100 text-green-800',
             Inventario: 'bg-blue-100 text-blue-800',
+            Facturacion: 'bg-amber-100 text-amber-800',
             Facturación: 'bg-amber-100 text-amber-800',
             Pagos: 'bg-cyan-100 text-cyan-800',
           };
+          const cls = colorRol[rol] ?? '';
           return (
-            <Badge className={colorRol[rol]}>{rol}</Badge>
+            <Badge className={cls || undefined} variant={cls ? undefined : 'outline'}>
+              {rol}
+            </Badge>
           );
         },
       },
@@ -622,17 +618,17 @@ export function GestionAccesosPage() {
   // Estadísticas
   const estadisticas = useMemo(() => {
     const activos = datos.filter((d) => d.activo);
-    const porRol = ROLES.reduce((acc, rol) => {
-      acc[rol] = datos.filter((d) => d.rol === rol).length;
+    const porRol = roles.reduce((acc, rol) => {
+      acc[rol.nombre] = datos.filter((d) => d.rolNombre === rol.nombre).length;
       return acc;
-    }, {} as Record<RolAcceso, number>);
+    }, {} as Record<string, number>);
 
     return {
       totalAccesos: datos.length,
       accesosActivos: activos.length,
       porRol,
     };
-  }, [datos]);
+  }, [datos, roles]);
 
   return (
     <div className="grow content-start p-5 lg:p-7.5 space-y-5">
@@ -660,6 +656,17 @@ export function GestionAccesosPage() {
           </AlertIcon>
           <AlertTitle>Operación Exitosa</AlertTitle>
           <AlertDescription>{mensajeExito}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Error general / carga */}
+      {cargando && (
+        <Alert>
+          <AlertIcon>
+            <Clock className="h-4 w-4" />
+          </AlertIcon>
+          <AlertTitle>Cargando</AlertTitle>
+          <AlertDescription>Sincronizando accesos con el servidor...</AlertDescription>
         </Alert>
       )}
 
@@ -760,7 +767,7 @@ export function GestionAccesosPage() {
                   <SelectContent>
                     <SelectItem value="todas">Todas las instalaciones</SelectItem>
                     {instalaciones.map((inst) => (
-                      <SelectItem key={inst.id} value={inst.id}>
+                      <SelectItem key={inst.instalacionId} value={String(inst.instalacionId)}>
                         {inst.nombre}
                       </SelectItem>
                     ))}
@@ -867,12 +874,12 @@ export function GestionAccesosPage() {
                   <SelectValue placeholder="Seleccionar usuario..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {usuariosActiveDirectory.map((usuario) => (
-                    <SelectItem key={usuario.id} value={usuario.id}>
+                  {usuarios.map((usuario) => (
+                    <SelectItem key={usuario.usuarioId} value={String(usuario.usuarioId)}>
                       <div className="flex flex-col">
-                        <span>{usuario.nombre}</span>
+                        <span>{usuario.nombreCompleto}</span>
                         <span className="text-xs text-muted-foreground">
-                          {usuario.email} • {usuario.departamento}
+                          {usuario.email}{usuario.puesto ? ` • ${usuario.puesto}` : ''}
                         </span>
                       </div>
                     </SelectItem>
@@ -894,7 +901,7 @@ export function GestionAccesosPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {instalaciones.map((inst) => (
-                    <SelectItem key={inst.id} value={inst.id}>
+                    <SelectItem key={inst.instalacionId} value={String(inst.instalacionId)}>
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4" />
                         <span>{inst.nombre}</span>
@@ -912,16 +919,16 @@ export function GestionAccesosPage() {
             <div className="space-y-2">
               <Label htmlFor="rol">Rol *</Label>
               <Select
-                value={formulario.rol}
-                onValueChange={(value) => handleRolChange(value as RolAcceso)}
+                value={formulario.rolId}
+                onValueChange={(value) => handleRolChange(value)}
               >
                 <SelectTrigger id="rol">
                   <SelectValue placeholder="Seleccionar rol..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {ROLES.map((rol) => (
-                    <SelectItem key={rol} value={rol}>
-                      {rol}
+                  {roles.map((rol) => (
+                    <SelectItem key={rol.rolId} value={String(rol.rolId)}>
+                      {rol.nombre}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -932,7 +939,7 @@ export function GestionAccesosPage() {
             </div>
 
             {/* Permisos Específicos */}
-            {formulario.rol && (
+            {formulario.rolId && (
               <div className="space-y-3">
                 <Label>Permisos Específicos por Módulo</Label>
                 <div className="grid grid-cols-2 gap-3 p-4 bg-muted/50 rounded-lg">
@@ -1072,7 +1079,7 @@ export function GestionAccesosPage() {
             <DialogClose asChild>
               <Button variant="outline">Cancelar</Button>
             </DialogClose>
-            <Button onClick={handleGuardar}>
+            <Button onClick={handleGuardar} disabled={cargando}>
               {accesoEditando ? 'Guardar Cambios' : 'Asignar Acceso'}
             </Button>
           </DialogFooter>
