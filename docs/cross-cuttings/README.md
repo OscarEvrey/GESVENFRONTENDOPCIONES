@@ -9,11 +9,14 @@ Backend usa un wrapper consistente tipo `RespuestaApi<T>`:
 - `datos`
 - `errores`
 
+Definición en `GesvenApi/Models/Dtos/Responses/RespuestaApi.cs`.
+
 Esto impacta al frontend: debe manejar errores de negocio vs errores HTTP.
 
 ## Mapeo de DTOs (AutoMapper)
 
 - El backend centraliza el mapeo Entidad→DTO usando AutoMapper (profiles en `GesvenApi/Mapping/`).
+- DTOs se encuentran en `GesvenApi/Models/Dtos/` organizados en subdirectorios `Requests/` y `Responses/`.
 - Implicación práctica: si se agregan/renombran campos en DTOs de respuesta, se debe actualizar el profile correspondiente para que el campo salga en la API.
 
 ## Tipos de IDs (SQL Server)

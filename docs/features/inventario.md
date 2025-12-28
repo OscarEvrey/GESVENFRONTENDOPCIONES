@@ -8,20 +8,20 @@ Inventario se modela como un **ledger**: cada operación crea **movimientos** qu
 
 ### Backend
 
-- `GesvenApi/Controladores/InventarioController.cs`
-- `GesvenApi/Controladores/MovimientosController.cs`
-- `GesvenApi/Controladores/AjustesController.cs`
-- `GesvenApi/Controladores/TransferenciasController.cs`
-- `GesvenApi/Modelos/Inventario/Movimiento.cs`
-- `GesvenApi/Modelos/Inventario/AjusteInventario.cs`
-- `GesvenApi/Modelos/Inventario/Transferencia.cs`
-- `GesvenApi/Modelos/Inventario/TransferenciaDetalle.cs`
-- `GesvenApi/Modelos/Inventario/Producto.cs`
-- `GesvenApi/Datos/GesvenDbContext.cs`
+- `GesvenApi/Controllers/InventarioController.cs`
+- `GesvenApi/Controllers/MovimientosController.cs`
+- `GesvenApi/Controllers/AjustesController.cs`
+- `GesvenApi/Controllers/TransferenciasController.cs`
+- `GesvenApi/Models/Inventario/Movimiento.cs`
+- `GesvenApi/Models/Inventario/AjusteInventario.cs`
+- `GesvenApi/Models/Inventario/Transferencia.cs`
+- `GesvenApi/Models/Inventario/TransferenciaDetalle.cs`
+- `GesvenApi/Models/Inventario/Producto.cs`
+- `GesvenApi/Data/GesvenDbContext.cs`
 
 ### Frontend
 
-- `vite/src/tienda-inventario/services/gesvenApi.ts`
+- `vite/src/tienda-inventario/services/inventoryService.ts` (endpoints de inventario)
 - `vite/src/tienda-inventario/hooks/useGesvenApi.ts`
 - `vite/src/tienda-inventario/pages/inventario/InventarioActual.tsx` (parcialmente mock)
 - `vite/src/tienda-inventario/pages/inventario/KardexMovimientos.tsx` (mock)

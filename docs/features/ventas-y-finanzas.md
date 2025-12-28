@@ -10,14 +10,14 @@
 
 ### Backend
 
-- `GesvenApi/Controladores/VentasController.cs`
-- `GesvenApi/Modelos/Ventas/Venta.cs`
-- `GesvenApi/Modelos/Ventas/VentaDetalle.cs`
-- `GesvenApi/Modelos/Inventario/Movimiento.cs` (salida por venta)
+- `GesvenApi/Controllers/VentasController.cs`
+- `GesvenApi/Models/Ventas/Venta.cs`
+- `GesvenApi/Models/Ventas/VentaDetalle.cs`
+- `GesvenApi/Models/Inventario/Movimiento.cs` (salida por venta)
 
 ### Frontend
 
-- `vite/src/tienda-inventario/services/gesvenApi.ts` (ventas reales disponibles)
+- `vite/src/tienda-inventario/services/salesService.ts` (ventas reales disponibles)
 - `vite/src/tienda-inventario/pages/finanzas/RegistroVentas.tsx` (mock)
 - `vite/src/tienda-inventario/pages/finanzas/CargaFacturas.tsx` (mock)
 - `vite/src/tienda-inventario/pages/finanzas/GestionPagos.tsx` (mock)

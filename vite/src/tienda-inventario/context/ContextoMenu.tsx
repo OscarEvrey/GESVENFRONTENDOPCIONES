@@ -10,8 +10,8 @@ import {
   useMemo
 } from 'react';
 
-// Importamos el servicio unificado desde tienda-inventario
-import gesvenApi from '@/tienda-inventario/services';
+// Importamos el servicio de seguridad desde tienda-inventario
+import { securityService } from '@/tienda-inventario/services';
 
 // Importamos tipos del API (usamos los DTOs directamente para evitar conversiones)
 import type { ModuloApiDto, UsuarioConRolApiDto } from '@/tienda-inventario/types/api/securityTypes';
@@ -51,7 +51,7 @@ export function ContextoMenuProvider({ children }: { children: ReactNode }) {
     try {
       setCargandoMenu(true);
       // Llamamos al nuevo endpoint del Backend
-      const datos = await gesvenApi.obtenerMenuUsuario(instalacionActiva.instalacionId);
+      const datos = await securityService.obtenerMenuUsuario(instalacionActiva.instalacionId);
       
       // El backend nos devuelve la estructura lista
       setMenu(datos.menu);

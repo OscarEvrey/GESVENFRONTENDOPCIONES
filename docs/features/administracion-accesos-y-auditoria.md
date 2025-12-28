@@ -11,9 +11,9 @@ Pantallas administrativas de:
 
 ### Backend
 
-- `GesvenApi/Modelos/Seguridad/Usuario.cs`
-- `GesvenApi/Modelos/Seguridad/Rol.cs`
-- `GesvenApi/Modelos/Seguridad/AccesoInstalacion.cs`
+- `GesvenApi/Models/Seguridad/Usuario.cs`
+- `GesvenApi/Models/Seguridad/Rol.cs`
+- `GesvenApi/Models/Seguridad/AccesoInstalacion.cs`
 
 ### Frontend
 

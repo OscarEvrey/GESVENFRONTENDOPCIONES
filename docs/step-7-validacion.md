@@ -9,14 +9,15 @@
 
 ### API conventions
 
-- Standard response wrapper: `RespuestaApi<T>` with `Exito`, `Mensaje`, `Datos`, `Errores`. See [GesvenApi/DTOs/DTOs.cs](../GesvenApi/DTOs/DTOs.cs).
+- Standard response wrapper: `RespuestaApi<T>` with `Exito`, `Mensaje`, `Datos`, `Errores`. See [GesvenApi/Models/Dtos/Responses/RespuestaApi.cs](../GesvenApi/Models/Dtos/Responses/RespuestaApi.cs).
 - DTO mapping: controllers centralize entity→DTO mapping via AutoMapper profiles (see `GesvenApi/Mapping/`), frequently using query projections to keep list endpoints consistent.
 - Infrastructure: EF Core SQL Server configured with retry, CORS policy for frontend, OpenAPI in dev. See [GesvenApi/Program.cs](../GesvenApi/Program.cs).
+- Database schema: See [GesvenApi/Scripts/DBGESVENFULL.sql](../GesvenApi/Scripts/DBGESVENFULL.sql).
 
 ### Status (Estatus) normalization
 
-- Status IDs are resolved via `IEstatusLookupService` against `Aud.EstatusGeneral` using `(modulo, nombre)` (normalized), with fallback to `(null, nombre)` and caching. See [GesvenApi/Servicios/EstatusLookupService.cs](../GesvenApi/Servicios/EstatusLookupService.cs).
-- Note: `Transferencia.Estatus` is a string (e.g., `EnTransito`, `Recibida`, `Cancelada`), unlike compras/ventas/productos/usuarios that use `EstatusId` pointing at `EstatusGeneral`. See [GesvenApi/Modelos/Inventario/Transferencia.cs](../GesvenApi/Modelos/Inventario/Transferencia.cs).
+- Status IDs are resolved via `IEstatusLookupService` against `Aud.EstatusGeneral` using `(modulo, nombre)` (normalized), with fallback to `(null, nombre)` and caching. See [GesvenApi/Services/Implementations/EstatusLookupService.cs](../GesvenApi/Services/Implementations/EstatusLookupService.cs).
+- Note: `Transferencia.Estatus` is a string (e.g., `EnTransito`, `Recibida`, `Cancelada`), unlike compras/ventas/productos/usuarios that use `EstatusId` pointing at `EstatusGeneral`. See [GesvenApi/Models/Inventario/Transferencia.cs](../GesvenApi/Models/Inventario/Transferencia.cs).
 
 ### Inventory semantics (ledger-based)
 
@@ -26,7 +27,7 @@
   - registering sales (exits),
   - transfers (origin exit + destination entry on reception),
   - physical adjustments (entry/exit).
-- Core entities: `Producto`, `Movimiento`, `AjusteInventario`, `Transferencia`, `TransferenciaDetalle` in [GesvenApi/Modelos/Inventario/](../GesvenApi/Modelos/Inventario/).
+- Core entities: `Producto`, `Movimiento`, `AjusteInventario`, `Transferencia`, `TransferenciaDetalle` in [GesvenApi/Models/Inventario/](../GesvenApi/Models/Inventario/).
 
 **Contract note:** `MovimientoId` is backed by SQL Server `bigint` (modeled as `long` in the backend). Clients should not assume 32-bit integer ranges for movement identifiers.
 
@@ -34,18 +35,18 @@
 
 - Compras (Ordenes de compra): create, list/filter, approve/reject (motivo required for reject), receive with per-line validation and movement creation for inventariable items.
   - Key models: `OrdenCompra`, `OrdenCompraDetalle`, `Proveedor`.
-  - Controllers: [GesvenApi/Controladores/ComprasController.cs](../GesvenApi/Controladores/ComprasController.cs), [GesvenApi/Controladores/ProveedoresController.cs](../GesvenApi/Controladores/ProveedoresController.cs).
+  - Controllers: [GesvenApi/Controllers/ComprasController.cs](../GesvenApi/Controllers/ComprasController.cs), [GesvenApi/Controllers/ProveedoresController.cs](../GesvenApi/Controllers/ProveedoresController.cs).
 
 - Ventas: create sale with stock validation for inventariable items, generate `Folio`, create salida movements, cancel updates status.
   - Key models: `Venta`, `VentaDetalle`, `Cliente`.
-  - Controllers: [GesvenApi/Controladores/VentasController.cs](../GesvenApi/Controladores/VentasController.cs), [GesvenApi/Controladores/ClientesController.cs](../GesvenApi/Controladores/ClientesController.cs).
+  - Controllers: [GesvenApi/Controllers/VentasController.cs](../GesvenApi/Controllers/VentasController.cs), [GesvenApi/Controllers/ClientesController.cs](../GesvenApi/Controllers/ClientesController.cs).
 
 - Transferencias: create validates stock at origin, generates folio and salida movements; receiving creates entrada movements and updates status; cancel updates status.
-  - Models: [GesvenApi/Modelos/Inventario/Transferencia.cs](../GesvenApi/Modelos/Inventario/Transferencia.cs).
-  - Controller: [GesvenApi/Controladores/TransferenciasController.cs](../GesvenApi/Controladores/TransferenciasController.cs).
+  - Models: [GesvenApi/Models/Inventario/Transferencia.cs](../GesvenApi/Models/Inventario/Transferencia.cs).
+  - Controller: [GesvenApi/Controllers/TransferenciasController.cs](../GesvenApi/Controllers/TransferenciasController.cs).
 
 - Ajustes: create validates non-negative resulting balance; writes `AjusteInventario` and related `Movimiento`.
-  - Controller: [GesvenApi/Controladores/AjustesController.cs](../GesvenApi/Controladores/AjustesController.cs).
+  - Controller: [GesvenApi/Controllers/AjustesController.cs](../GesvenApi/Controllers/AjustesController.cs).
 
 - Movimientos: list/filter by installation/product/date range.
   - Controller: [GesvenApi/Controladores/MovimientosController.cs](../GesvenApi/Controladores/MovimientosController.cs).

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
-// Importamos desde el barril de servicios (ajusta los ../ según tu estructura real)
-import gesvenApi from '../../../services'; 
+// Importamos el servicio de seguridad desde el barril de servicios
+import { securityService } from '../../../services'; 
 import { useContextoInstalacion } from '../../../context/ContextoInstalacion';
 import type { 
   AccesoInstalacionApiDto, 
@@ -25,10 +25,9 @@ export function useAccesos() {
       setError(null);
 
       const [listaAccesos, listaRoles, listaUsuarios] = await Promise.all([
-        // CORRECCIÓN 1: Pasamos el ID directamente, no como objeto
-        gesvenApi.obtenerAccesos(instalacionActiva.instalacionId),
-        gesvenApi.obtenerRoles(),
-        gesvenApi.obtenerUsuarios()
+        securityService.obtenerAccesos(instalacionActiva.instalacionId),
+        securityService.obtenerRoles(),
+        securityService.obtenerUsuarios()
       ]);
 
       setAccesos(listaAccesos);
@@ -49,11 +48,9 @@ export function useAccesos() {
     if (!instalacionActiva) return;
     try {
       if (esEdicion && accesoId) {
-        // CORRECCIÓN 2: Usamos el nombre nuevo 'actualizarAcceso'
-        await gesvenApi.actualizarAcceso(accesoId, { rolId, esActivo: true });
+        await securityService.actualizarAcceso(accesoId, { rolId, esActivo: true });
       } else {
-        // CORRECCIÓN 3: Usamos el nombre nuevo 'crearAcceso'
-        await gesvenApi.crearAcceso({
+        await securityService.crearAcceso({
           instalacionId: instalacionActiva.instalacionId,
           usuarioId,
           rolId,
@@ -69,8 +66,7 @@ export function useAccesos() {
 
   const revocarAcceso = async (accesoId: number) => {
     try {
-      // CORRECCIÓN 4: Usamos el nombre nuevo 'revocarAcceso'
-      await gesvenApi.revocarAcceso(accesoId);
+      await securityService.revocarAcceso(accesoId);
       await cargarDatos();
     } catch {
       alert('Error al revocar acceso');

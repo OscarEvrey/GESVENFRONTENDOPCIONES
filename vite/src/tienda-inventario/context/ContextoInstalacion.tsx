@@ -16,7 +16,7 @@ import {
 import type { Instalacion } from '@/tienda-inventario/types';
 
 // 2. Servicios API del módulo tienda-inventario
-import gesvenApi from '@/tienda-inventario/services';
+import { commonService } from '@/tienda-inventario/services';
 
 export type { Instalacion } from '@/tienda-inventario/types';
 
@@ -75,10 +75,9 @@ export function ContextoInstalacionProvider({
         setErrorInstalaciones(null);
 
         // Llamada a la API
-        const instalacionesApi = await gesvenApi.obtenerInstalaciones();
+        const instalacionesApi = await commonService.obtenerInstalaciones();
         
         // Mapeo de datos (API DTO -> Frontend Model)
-        // Nota: Al arreglar el import de 'gesvenApi', TypeScript sabrá automáticamente qué tipo es 'i'
         const instalacionesNormalizadas: Instalacion[] = instalacionesApi.map((i) => ({
           instalacionId: i.instalacionId,
           id: slugInstalacion(i.nombre),

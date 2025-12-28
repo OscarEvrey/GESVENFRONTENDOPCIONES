@@ -8,13 +8,13 @@ Administración de productos (altas/cambios) y su estatus (activo/inactivo). Pro
 
 ### Backend
 
-- `GesvenApi/Controladores/ProductosController.cs`
-- `GesvenApi/Modelos/Inventario/Producto.cs`
-- `GesvenApi/Modelos/Auditoria/EstatusGeneral.cs`
+- `GesvenApi/Controllers/ProductosController.cs`
+- `GesvenApi/Models/Inventario/Producto.cs`
+- `GesvenApi/Models/Auditoria/EstatusGeneral.cs`
 
 ### Frontend
 
-- `vite/src/tienda-inventario/services/gesvenApi.ts` (CRUD real disponible)
+- `vite/src/tienda-inventario/services/inventoryService.ts` (CRUD real disponible)
 - `vite/src/tienda-inventario/pages/catalogos/Articulos.tsx` (UI actualmente mock)
 
 ## Contratos API
@@ -32,5 +32,5 @@ Administración de productos (altas/cambios) y su estatus (activo/inactivo). Pro
 
 ## Recomendaciones (modernización)
 
-- Conectar `Articulos` al `gesvenApi` y eliminar datos ficticios.
+- Conectar `Articulos` a los servicios modulares (`inventoryService`) y eliminar datos ficticios.
 - Alinear validaciones UI con backend (campos requeridos, unicidad, estatus).

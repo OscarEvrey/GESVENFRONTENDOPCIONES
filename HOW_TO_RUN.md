@@ -57,7 +57,7 @@ Este documento describe los pasos mínimos para arrancar el backend y frontend d
 
    - El frontend estará disponible en `http://localhost:5173`.
    - Usa el valor `VITE_API_URL` si necesitas apuntar a otra URL del backend; por defecto ya apunta a `http://localhost:5022`.
-   - El cliente `gesvenApi.ts` agrega automáticamente el header `X-Gesven-UsuarioId` y maneja tokens mock.
+   - El cliente `apiClient.ts` (en `services/core/`) agrega automáticamente el header `X-Gesven-UsuarioId` y maneja respuestas estándar.
 
 ## 4. Validación final (smoke test)
 
@@ -65,7 +65,7 @@ Este documento describe los pasos mínimos para arrancar el backend y frontend d
 2. Usa el navegador o curl para probar algunos endpoints clave:
    - `GET http://localhost:5022/api/instalaciones` (pone `X-Gesven-UsuarioId: 1`).
    - `GET http://localhost:5022/api/movimientos?instalacionId=1` (para confirmar que los IDs tipo bigint se serializan bien).
-   - Carga http://localhost:5173 en el navegador; el frontend cargará datos de `gesvenApi.ts`.
+   - Carga http://localhost:5173 en el navegador; el frontend cargará datos usando los servicios modulares.
 3. Si necesitas resets de datos, consulta los scripts en `GesvenApi/Scripts/GesvenSQLServer.sql`.
 
 ## 5. Notas útiles

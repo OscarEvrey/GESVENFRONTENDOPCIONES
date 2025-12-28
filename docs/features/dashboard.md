@@ -8,11 +8,11 @@ Mostrar KPIs y métricas por instalación (ventas, compras, stock, alertas).
 
 ### Backend
 
-- `GesvenApi/Controladores/DashboardController.cs`
+- `GesvenApi/Controllers/DashboardController.cs`
 
 ### Frontend
 
-- `vite/src/tienda-inventario/services/gesvenApi.ts` (endpoint dashboard)
+- `vite/src/tienda-inventario/services/commonService.ts` (endpoint dashboard)
 - `vite/src/tienda-inventario/pages/tablero/Dashboard.tsx` (UI mock)
 
 ## Contratos API

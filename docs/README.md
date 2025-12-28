@@ -31,7 +31,16 @@ Documento de contexto: [Propósito y stakeholders](proposito-y-stakeholders.md).
 
 - Mapeo DTOs: los controllers centralizan el mapeo Entidad→DTO con AutoMapper (profiles en `GesvenApi/Mapping/`).
 - Tipos de IDs: algunos IDs pueden ser `bigint` en BD (p. ej., `MovimientoId`), así que evita suposiciones de 32 bits en frontend.
+- Script de base de datos: `GesvenApi/Scripts/DBGESVENFULL.sql` contiene el esquema completo de la base de datos.
+
+## Estructura del backend refactorizada
+
+- Controllers: `GesvenApi/Controllers/` (antes `Controladores/`)
+- Models: `GesvenApi/Models/` (antes `Modelos/`)
+- DTOs: `GesvenApi/Models/Dtos/` con subdirectorios `Requests/` y `Responses/`
+- Services: `GesvenApi/Services/` con subdirectorios `Implementations/` e `Interfaces/`
+- Data: `GesvenApi/Data/` (antes `Datos/`)
 
 ## Nota sobre madurez
 
-Varias pantallas del frontend todavía operan con datos ficticios; el cliente API `gesvenApi.ts` ya tiene gran parte del mapa de endpoints para completar la integración.
+Varias pantallas del frontend todavía operan con datos ficticios; los servicios modulares en `vite/src/tienda-inventario/services/` ya tienen gran parte del mapa de endpoints para completar la integración.

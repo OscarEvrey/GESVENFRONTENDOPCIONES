@@ -12,15 +12,15 @@ Gestiona el ciclo de vida de una **Orden de Compra (OC)**:
 
 ### Backend
 
-- `GesvenApi/Controladores/ComprasController.cs`
-- `GesvenApi/Modelos/Compras/OrdenCompra.cs`
-- `GesvenApi/Modelos/Compras/OrdenCompraDetalle.cs`
-- `GesvenApi/Modelos/Compras/Proveedor.cs`
-- `GesvenApi/Modelos/Inventario/Movimiento.cs` (entrada por recepción)
+- `GesvenApi/Controllers/ComprasController.cs`
+- `GesvenApi/Models/Compras/OrdenCompra.cs`
+- `GesvenApi/Models/Compras/OrdenCompraDetalle.cs`
+- `GesvenApi/Models/Compras/Proveedor.cs`
+- `GesvenApi/Models/Inventario/Movimiento.cs` (entrada por recepción)
 
 ### Frontend
 
-- `vite/src/tienda-inventario/services/gesvenApi.ts`
+- `vite/src/tienda-inventario/services/purchasingService.ts` (endpoints de compras/OC)
 - `vite/src/tienda-inventario/hooks/useGesvenApi.ts`
 - `vite/src/tienda-inventario/context/ContextoOrdenesCompra.tsx` (**mock**)
 - `vite/src/tienda-inventario/pages/compras/NuevaOrdenCompra.tsx` (**híbrido**: backend + sync al mock)

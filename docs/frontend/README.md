@@ -11,7 +11,48 @@
 ## Sesión y “usuario”
 
 - `vite/src/providers/auth-provider.tsx`: sesión mock en localStorage.
-- `vite/src/tienda-inventario/services/gesvenApi.ts`: envía `X-Gesven-UsuarioId` en requests.
+- `vite/src/tienda-inventario/services/core/apiClient.ts`: cliente HTTP base que envía `X-Gesven-UsuarioId` en requests.
+
+## Arquitectura de Servicios
+
+El módulo de servicios está modularizado por dominio:
+
+```
+vite/src/tienda-inventario/services/
+├── core/
+│   └── apiClient.ts          # Cliente HTTP base, headers, manejo de respuestas
+├── index.ts                  # Barrel export de servicios individuales
+├── securityService.ts        # Endpoints de seguridad/usuarios/roles/accesos
+├── inventoryService.ts       # Endpoints de inventario/movimientos/ajustes
+├── salesService.ts           # Endpoints de ventas/clientes
+├── purchasingService.ts      # Endpoints de compras/proveedores/OC
+└── commonService.ts          # Endpoints comunes (instalaciones, dashboard)
+```
+
+**Uso:** Importar servicios individuales por dominio:
+
+```typescript
+import { inventoryService, securityService } from '@/tienda-inventario/services';
+
+// Ejemplos de uso
+const inventario = await inventoryService.obtenerInventarioActual(instalacionId);
+const menu = await securityService.obtenerMenuUsuario(instalacionId);
+```
+
+## Tipos de API
+
+Los tipos se han organizado por dominio:
+
+```
+vite/src/tienda-inventario/types/
+├── index.ts                  # Tipos de UI y exportaciones
+└── api/
+    ├── commonTypes.ts        # RespuestaApi<T>, tipos base
+    ├── inventoryTypes.ts     # Tipos de inventario/movimientos
+    ├── salesTypes.ts         # Tipos de ventas/clientes
+    ├── purchasingTypes.ts    # Tipos de compras/proveedores
+    └── securityTypes.ts      # Tipos de seguridad/usuarios
+```
 
 ## Contrato API (puntos a tener en cuenta)
 
@@ -28,7 +69,7 @@
 
 ## Data fetching
 
-- `vite/src/tienda-inventario/services/gesvenApi.ts`: cliente fetch central.
+- `vite/src/tienda-inventario/services/core/apiClient.ts`: cliente fetch central con manejo estándar de respuestas.
 - `vite/src/tienda-inventario/hooks/useGesvenApi.ts`: hooks con `useEffect/useState`.
 
 ## Estado actual: integración real vs mock

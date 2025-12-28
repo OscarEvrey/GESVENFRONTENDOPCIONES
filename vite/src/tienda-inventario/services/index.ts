@@ -1,31 +1,24 @@
+/**
+ * Servicios de API de GESVEN - Arquitectura Modular
+ * 
+ * Cada servicio maneja un dominio específico del sistema:
+ * - securityService: usuarios, roles, accesos, menú dinámico
+ * - inventoryService: productos, movimientos, ajustes, transferencias
+ * - salesService: ventas, clientes
+ * - purchasingService: compras, proveedores, órdenes de compra
+ * - commonService: instalaciones, dashboard
+ * 
+ * Uso:
+ *   import { securityService, inventoryService } from '@/tienda-inventario/services';
+ *   const menu = await securityService.obtenerMenuUsuario(instalacionId);
+ */
+
 // Exportamos el cliente base por si se necesita suelto
 export * from './core/apiClient';
 
-// Exportamos servicios individuales
-export * from './securityService';
-export * from './inventoryService';
-export * from './salesService';
-export * from './purchasingService';
-export * from './commonService';
-
-// Importamos para agrupar
-import { securityService } from './securityService';
-import { inventoryService } from './inventoryService';
-import { salesService } from './salesService';
-import { purchasingService } from './purchasingService';
-import { commonService } from './commonService';
-
-/**
- * API UNIFICADA DE GESVEN
- * * Agrupa todos los micro-servicios en un solo objeto para mantener
- * compatibilidad con el código existente que importa 'gesvenApi'.
- */
-const gesvenApi = {
-  ...securityService,
-  ...inventoryService,
-  ...salesService,
-  ...purchasingService,
-  ...commonService,
-};
-
-export default gesvenApi;
+// Exportamos servicios individuales (named exports)
+export { securityService } from './securityService';
+export { inventoryService } from './inventoryService';
+export { salesService } from './salesService';
+export { purchasingService } from './purchasingService';
+export { commonService } from './commonService';

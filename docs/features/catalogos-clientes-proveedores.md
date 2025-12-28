@@ -9,14 +9,15 @@
 
 ### Backend
 
-- `GesvenApi/Controladores/ClientesController.cs`
-- `GesvenApi/Controladores/ProveedoresController.cs`
-- `GesvenApi/Modelos/Ventas/Cliente.cs`
-- `GesvenApi/Modelos/Compras/Proveedor.cs`
+- `GesvenApi/Controllers/ClientesController.cs`
+- `GesvenApi/Controllers/ProveedoresController.cs`
+- `GesvenApi/Models/Ventas/Cliente.cs`
+- `GesvenApi/Models/Compras/Proveedor.cs`
 
 ### Frontend
 
-- `vite/src/tienda-inventario/services/gesvenApi.ts` (CRUD real)
+- `vite/src/tienda-inventario/services/salesService.ts` (clientes CRUD real)
+- `vite/src/tienda-inventario/services/purchasingService.ts` (proveedores CRUD real)
 - `vite/src/tienda-inventario/pages/catalogos/ClientesProveedores.tsx` (UI actualmente mock)
 
 ## Contratos API

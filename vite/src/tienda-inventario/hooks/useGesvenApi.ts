@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
-// Importamos la instancia unificada desde el archivo barril
-import gesvenApi from '../services'; 
+
+// Importamos los servicios modulares
+import { commonService, inventoryService, purchasingService } from '../services';
 
 // Importamos los tipos desde la nueva estructura modular
 import type { InstalacionApiDto } from '../types/api/commonTypes';
@@ -29,7 +30,7 @@ export function useInstalacionesApi() {
       try {
         setCargando(true);
         setError(null);
-        const datos = await gesvenApi.obtenerInstalaciones();
+        const datos = await commonService.obtenerInstalaciones();
         if (!cancelado) {
           setInstalaciones(datos);
         }
@@ -71,7 +72,7 @@ export function useInventarioApi(instalacionId: number | null) {
     try {
       setCargando(true);
       setError(null);
-      const datos = await gesvenApi.obtenerInventarioActual(instalacionId); // Nota: actualicé el nombre del método según inventoryService
+      const datos = await inventoryService.obtenerInventarioActual(instalacionId);
       setProductos(datos);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -102,7 +103,7 @@ export function useProveedoresApi() {
       try {
         setCargando(true);
         setError(null);
-        const datos = await gesvenApi.obtenerProveedores();
+        const datos = await purchasingService.obtenerProveedores();
         if (!cancelado) {
           setProveedores(datos);
         }
@@ -147,7 +148,7 @@ export function useProductosParaCompraApi(instalacionId: number | null) {
       try {
         setCargando(true);
         setError(null);
-        const datos = await gesvenApi.obtenerProductosParaCompra(instalacionId!);
+        const datos = await inventoryService.obtenerProductosParaCompra(instalacionId!);
         if (!cancelado) {
           setProductos(datos);
         }
@@ -183,7 +184,7 @@ export function useCrearOrdenCompra() {
     try {
       setCreando(true);
       setError(null);
-      const resultado = await gesvenApi.crearOrdenCompra(orden);
+      const resultado = await purchasingService.crearOrdenCompra(orden);
       return resultado;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -208,7 +209,7 @@ export function useOrdenesCompraApi(instalacionId?: number) {
     try {
       setCargando(true);
       setError(null);
-      const datos = await gesvenApi.obtenerOrdenesCompra(instalacionId);
+      const datos = await purchasingService.obtenerOrdenesCompra(instalacionId);
       setOrdenes(datos);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');

@@ -17,20 +17,21 @@ Este feature define:
 - `vite/src/tienda-inventario/layout/LayoutProtegido.tsx` (guard de rutas)
 - `vite/src/tienda-inventario/context/ContextoInstalacion.tsx` (estado instalación)
 - `vite/src/tienda-inventario/pages/contexto/SelectorInstalacion.tsx` (UI selector)
-- `vite/src/tienda-inventario/services/gesvenApi.ts` (inyección header usuario)
+- `vite/src/tienda-inventario/services/core/apiClient.ts` (inyección header usuario)
+- `vite/src/tienda-inventario/services/securityService.ts` (endpoints de instalaciones)
 
 ### Backend
 
-- `GesvenApi/Controladores/InstalacionesController.cs`
-- `GesvenApi/Modelos/Organizacion/Instalacion.cs`
-- `GesvenApi/Datos/GesvenDbContext.cs` (filtros/auditoría por usuario)
+- `GesvenApi/Controllers/InstalacionesController.cs`
+- `GesvenApi/Models/Organizacion/Instalacion.cs`
+- `GesvenApi/Data/GesvenDbContext.cs` (filtros/auditoría por usuario)
 
 ## Flujo principal
 
 ### 1) Inicialización de “sesión” en el frontend
 
 - `AuthProvider` crea una sesión **mock** (sin login real), y define un `userId` actual.
-- `gesvenApi.ts` inyecta `X-Gesven-UsuarioId` en cada request.
+- `apiClient.ts` (en `services/core/`) inyecta `X-Gesven-UsuarioId` en cada request.
 
 **Observación**: esta sesión es una estrategia temporal (útil para prototipado), pero no provee autenticación real.
 
